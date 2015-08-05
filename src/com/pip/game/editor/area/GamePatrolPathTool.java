@@ -9,10 +9,15 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Menu;
 
-import com.pip.game.data.ProjectData;
+import com.pip.mango.jni.GLGraphics;
+import scryer.ogre.mesh.MeshConfig;
+
+import com.pip.data.EntitySpriteInfo;
+import com.pip.data.SpriteAnimation;
+import com.pip.data.SpriteInfo;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
-import com.pip.mango.jni.GLGraphics;
 import com.pip.mapeditor.MapEditor;
 import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
@@ -135,8 +140,7 @@ public class GamePatrolPathTool implements IMapEditTool {
     private Rectangle getObjectBounds(GameMapObject obj) {
         if (obj instanceof GameMapNPC) {
             GameMapNPC npc = (GameMapNPC)obj;
-            PipAnimateSet animateSet = viewer.getCachedNPCImage(npc);
-            Rectangle bounds = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet)).getBounds();
+            Rectangle bounds = viewer.getCachedNPCImage(npc).getBounds(0, ((GameMesh)npc.template.image).getMeshConfig().getScalar());
             bounds.x += npc.x;
             bounds.y += npc.y;
             return bounds;
@@ -246,8 +250,7 @@ public class GamePatrolPathTool implements IMapEditTool {
         if (selectedObject != null) {
             // 如果正在拖动NPC，先绘制次选中NPC
             if (isDragging && draggingPointIndex == -2) {
-            	PipAnimateSet animateSet = viewer.getCachedImage(selectedObject);
-                PipAnimate animate = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet));
+                PipAnimate animate = (PipAnimate)viewer.getCachedImage(selectedObject).getAnimation(0);
                 Point pt = new Point(selectedObject.x, selectedObject.y);
                 viewer.map2screen(pt);
                 animate.drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), null);
@@ -347,11 +350,18 @@ public class GamePatrolPathTool implements IMapEditTool {
         if (selectedObject != null) {
             // 如果正在拖动NPC，先绘制次选中NPC
             if (isDragging && draggingPointIndex == -2) {
-            	PipAnimateSet animateSet = viewer.getCachedImage(selectedObject);
-                PipAnimate animate = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet));
+                SpriteInfo info = viewer.getCachedImage(selectedObject);
+                SpriteAnimation animate = viewer.getCachedImage(selectedObject).getAnimation(0);
                 Point pt = new Point(selectedObject.x, selectedObject.y);
                 viewer.map2screen(pt);
-                animate.drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), MapEditor.imageCache);
+                if(info instanceof PipAnimateSet){
+                    ((PipAnimate)animate).drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), MapEditor.imageCache);
+                }else if(info instanceof EntitySpriteInfo){
+                    EntitySpriteInfo info2 = (EntitySpriteInfo)info;
+//                    ((MeshConfig)info).setPosition2D(pt.x, pt.y);
+                    info2.getPlayer().draw(gc.getHandle(), pt.x, pt.y);
+//                    ((MeshConfig)info).drawInMap(gc);
+                }
             }
             
             // 绘制选中的NPC的外框

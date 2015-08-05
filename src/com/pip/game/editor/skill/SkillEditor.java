@@ -75,7 +75,7 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
     
     protected Combo comboPrepareAni;
     protected Combo comboBuff;
-    protected SkillAnimationChooser textHitAni;
+    protected SkillAnimationChooser textHitAni;//被SkillEditorEx里面的hitAnimationPlayer替代
     protected SkillAnimationChooser textPrepareAni;
     protected SkillAnimationChooser textCastAni;
     /**
@@ -83,9 +83,10 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
      */
     protected SkillAnimationChooser locusAni;
     protected Combo comboCastAni;
+    protected Label l_DamageType;
     protected Combo comboDamageType;
     protected Text textCDGroup;
-    private Combo comboClazz;
+    protected Combo comboClazz;
     protected Combo comboMaxLevel;
     protected Combo comboTargetType;
     protected Combo comboType;
@@ -98,11 +99,12 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
         this.updating = updating;
     }
 
-    private Text textDesc;
+    protected Text textDesc;
     
-    private Text textTitle;
-    private Text textID;
-    private IconChooser iconChooser;
+    protected Text textTitle;
+    protected Text testAssistAction;
+    protected Text textID;
+    protected IconChooser iconChooser;
     protected WeaponChooser weaponChooser;
     protected EffectConfigSetEditor effectEditor;
     protected Button buttonRideUse;
@@ -112,10 +114,10 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
     private Button buttonUseBuffs;
     
     protected ComboViewer buffComboViewer;
-    private Button buttonAutoLearn;
-    private Spinner targetCntSpinner;
-    private SkillExtPropManager extPropManager;
-    private Button buttonAnalyse;
+    protected Button buttonAutoLearn;
+    protected Spinner targetCntSpinner;
+    protected SkillExtPropManager extPropManager;
+    protected Button buttonAnalyse;
 
     public SkillExtPropManager getExtPropManager() {
         return extPropManager;
@@ -171,7 +173,22 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
         comboType = new Combo(row0, SWT.READ_ONLY);
         comboType.setItems(new String[] {"主动攻击技能", "主动辅助技能", "被动技能", "光环技能", "复活技能"});
         comboType.setEnabled(false);
-
+        
+        final Label label_33 = new Label(row0, SWT.NONE);
+        label_33.setText("辅助动作:");
+        
+        testAssistAction = new Text(row0, SWT.BORDER);
+        testAssistAction.setText("　　　　");
+        testAssistAction.setText(""+dataDef.assistAction);
+        testAssistAction.addFocusListener(AutoSelectAll.instance);
+        testAssistAction.addModifyListener(this);
+        
+        
+    
+        
+        
+        
+        
         final Label label_4 = new Label(row0, SWT.NONE);
         label_4.setText("目标类型:");
 
@@ -345,8 +362,8 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
 
         textCDGroup = new Text(container, SWT.BORDER);
         textCDGroup.addModifyListener(this);
-        final Label label_9 = new Label(container, SWT.NONE);
-        label_9.setText("效果类型:");
+        l_DamageType = new Label(container, SWT.NONE);
+        l_DamageType.setText("效果类型:");
 
         comboDamageType = new Combo(container, SWT.READ_ONLY);
         comboDamageType.addSelectionListener(new SelectionAdapter() {
@@ -536,7 +553,7 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
         
         
     }
-    private void create9(Composite container){
+    protected void create9(Composite container){
         effectEditor = new EffectConfigSetEditor(container, SWT.NONE);
         effectEditor.mode = 0;
         effectEditor.addModifyListener(new ModifyListener() {
@@ -564,6 +581,7 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
         
         textID.setText(String.format("%4d", dataDef.id));
         textTitle.setText(dataDef.title);
+        testAssistAction.setText(dataDef.assistAction+"");
         textDesc.setText(dataDef.description);
 
         iconChooser.setIcon(dataDef.iconID);
@@ -622,13 +640,12 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
         updating = false;
     }
     
-    private void resetEffectEditor() {
+    protected void resetEffectEditor() {
         SkillConfig dataDef = (SkillConfig) editObject;
         
         try {
             effectEditor.setAllowedEffects(SkillTypeFilteringEffect.filter(dataDef.type));
-        }
-        catch (Exception e) {
+        }catch (Exception e) {
             MessageDialog.openInformation(getSite().getShell(), "过滤可使用的效果时出错", e.toString());
             e.printStackTrace();
         }
@@ -669,6 +686,7 @@ public class SkillEditor extends DefaultDataObjectEditor implements SelectionLis
             throw new Exception("请输入正确的ID。");
         }
         dataDef.title = textTitle.getText().trim();
+        
         dataDef.description = textDesc.getText();
         
         // 检查输入合法性

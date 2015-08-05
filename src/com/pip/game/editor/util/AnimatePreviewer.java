@@ -205,13 +205,13 @@ public class AnimatePreviewer extends Composite implements IFileModificationList
     
     public void setListVisible(boolean value) {
         GridData gd = (GridData)animateListTable.getLayoutData();
-        gd.exclude = true;
+        gd.exclude = !value;
         this.layout();
     }
     
     public void setEditEnable(boolean value) {
         GridData gd = (GridData)buttonEdit.getLayoutData();
-        gd.exclude = true;
+        gd.exclude = !value;
         this.layout();
     }
     /**

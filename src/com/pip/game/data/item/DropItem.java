@@ -26,9 +26,6 @@ public class DropItem extends DataObject {
     public static final int DROP_TYPE_MONEY = 3;
     /** 掉落经验 */
     public static final int DROP_TYPE_EXP = 4;
-    /** 掉落魔钻*/
-    public static final int DROP_TYPE_IMONEY = 5;
-    
     
     /********************* 常量定义 *********************/
     
@@ -153,8 +150,14 @@ public class DropItem extends DataObject {
             return "经验" + "(" + quantityMin + "~" + quantityMax + ")";
         default:
             // 扩展货币掉落
-            Currency c = (Currency)ProjectData.getActiveProject().findDictObject(Currency.class, dropType);
-            return c.title + "(" + quantityMin + "~" + quantityMax + ")";
+            String title = null;
+            if(this.title == null || "".equals(this.title)){
+                Currency c = (Currency)ProjectData.getActiveProject().findDictObject(Currency.class, dropType);
+                title = c.title;
+            }else{
+                title = this.title;
+            }
+            return title + "(" + quantityMin + "~" + quantityMax + ")";
         }
     }
 

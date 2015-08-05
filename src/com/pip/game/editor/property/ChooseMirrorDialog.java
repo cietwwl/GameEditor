@@ -29,7 +29,7 @@ public class ChooseMirrorDialog extends Dialog {
     class ListLabelProvider extends LabelProvider {
         public String getText(Object element) {
             int index = ((Integer)element).intValue();
-            return "œ‡Œª"+index +":"+mirrorNames[index];
+            return mirrorNames[index];
         }
         public Image getImage(Object element) {
             return null;

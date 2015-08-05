@@ -21,7 +21,6 @@ import java.util.Set;
 import org.jdom.Document;
 import org.jdom.Element;
 
-import com.pip.game.data.map.GameMapInfo;
 import com.pip.util.Utils;
 
 /**
@@ -33,7 +32,7 @@ public class ClientData {
      * 一个版本的客户端安装包资源列表定义。
      * @author lighthu
      */
-    private static class PackageDefine {
+    public static class PackageDefine {
         /** 目标目录路径，相对于data目录 */
         public String target;
         /** 对应客户端UI机型 */
@@ -53,8 +52,6 @@ public class ClientData {
         public boolean[] need;
         /** 包含的各文件是否不需要更新 */
         public boolean[] dontUpdate;
-        /** 包含的PKG是否添加NPC动画文件 */
-        public boolean[] npcAnimate;
         /** 缓存各资源文件的全路径 */
         public File[] srcFile;
         /** 缓存各资源文件的拷贝目标路径 */
@@ -69,21 +66,23 @@ public class ClientData {
         public Set<String> dontUpdateFiles;
         /** 缓存客户端文件名，到实际文件名的映射表 */
         public Map<String, String> fileNameMapping;
+        /** 配置文件是否需要打包到客户端 */
+        public boolean[] notToClient;
     }
 
     // 所属项目
-    private ProjectData owner;
+    public ProjectData owner;
     // 分支，null表示pip版本。
-    private String branch;
+    protected String branch;
     // scripts所在目录，默认是scripts，也可通过client_pkg.xml指定
-    private String scriptsDir;
+    public String scriptsDir;
     // 是否对etf文件记录完整名称，如果客户端使用scryer引擎，设置为true
-    private boolean useFullNameScriptFile = false;
+    protected boolean useFullNameScriptFile = false;
 
     // client_pkg.xml里配置的所有包定义。
-    private PackageDefine[] packageDefs;
+    public PackageDefine[] packageDefs;
     // PackageDefine快速查找表，key是UI机型
-    private Hashtable<String, PackageDefine> packageDefTable;
+    protected Hashtable<String, PackageDefine> packageDefTable;
 
     // 客户端用client.data文件来保存内置资源的列表和版本号，格式为：
     // 4字节文件数
@@ -91,7 +90,7 @@ public class ClientData {
     //     文件名（UTF-8字符串）
     //     4字节文件版本号
     //     4字节文件长度
-    private static final String CLIENT_DATA_FILE = "client.data";
+    public static final String CLIENT_DATA_FILE = "client.data";
     
     /**
      * 客户端资源版本号
@@ -119,10 +118,14 @@ public class ClientData {
         return scriptsDir;
     }
     
+    public boolean getUseFullNameScriptFile(){
+        return useFullNameScriptFile;
+    }
+    
     /*
      * 载入client_pkg.xml文件。
      */
-    private void loadDefine() throws Exception {
+    protected void loadDefine() throws Exception {
         Document doc1;
         if (branch == null) {
             doc1 = Utils.loadDOM(new File(owner.baseDir, "client_pkg.xml"));
@@ -188,14 +191,12 @@ public class ClientData {
             List<String> pathList = new ArrayList<String>();
             List<Boolean> needList = new ArrayList<Boolean>();
             List<Boolean> dontUpdateList = new ArrayList<Boolean>();
-            List<Boolean> npcAnimateList = new ArrayList<Boolean>();
             List<String> usedNameList = new ArrayList<String>();
             for (int j = 0; j < fileElemList.size(); j++) {
                 Element elem2 = (Element) fileElemList.get(j);
                 
                 String path = elem2.getAttributeValue("path");
                 path = path.replace('\\', '/');
-                
                 // 可以排除部分文件
                 String excludePath = elem2.getAttributeValue("exclude");
                 if (excludePath != null) {
@@ -203,7 +204,6 @@ public class ClientData {
                 }
                 boolean need = "true".equals(elem2.getAttributeValue("need"));
                 boolean dontUpdate = "true".equals(elem2.getAttributeValue("dont_update"));
-                boolean npcAnimate = "true".equals(elem2.getAttributeValue("npc_animate"));
                 String targetPath = elem2.getAttributeValue("target_path");
                 if (targetPath == null) {
                     targetPath = "";
@@ -214,36 +214,7 @@ public class ClientData {
                 for (String pattern : patterns) {
                     String[] pathes = wildCharsCache.get(pattern);
                     if (pathes == null) {
-                        pathes = translateWildChars(pattern);
-                        // 如果指定添加地图上的NPC动画文件 则将动画文件加入路径中
-                        if(npcAnimate){
-                            for(int p=0; p<pathes.length; p++){
-                                if (pathes[p].endsWith(".pkg")) {
-                                    int gid ;
-                                    int startIdx = pathes[p].lastIndexOf('/');
-                                    startIdx++;
-                                    int idxOf_ = pathes[p].indexOf('_', startIdx);
-                                    if(idxOf_ != -1){
-                                        //大版地图
-                                        gid = Integer.parseInt(pathes[p].substring(startIdx, idxOf_));
-                                    }else{
-                                        //其他版本地图
-                                        gid = Integer.parseInt(pathes[p].substring(startIdx, pathes[p].length() - 4));
-                                    }
-                                    GameMapInfo mapInfo = GameMapInfo.findByID(ProjectData.getActiveProject(), gid << 4);
-                                    if(mapInfo != null){
-                                        // 获得指定地图的NPC动画文件
-                                        String[] npcFiles = mapInfo.getNpcAnimationFiles(packageDefs[i].uimodel);
-                                        if(npcFiles != null && npcFiles.length > 0){
-                                            String[] newpathes = new String[pathes.length + npcFiles.length];
-                                            System.arraycopy(pathes, 0, newpathes, 0, pathes.length);
-                                            System.arraycopy(npcFiles, 0, newpathes, pathes.length, npcFiles.length);
-                                            pathes = newpathes;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        pathes = translateWildChars(pattern); 
                         wildCharsCache.put(pattern, pathes);
                     }
                     for (int k = 0; k < pathes.length; k++) {
@@ -274,7 +245,6 @@ public class ClientData {
                             pathList.remove(oldIndex);
                             needList.remove(oldIndex);
                             dontUpdateList.remove(oldIndex);
-                            npcAnimateList.remove(oldIndex);
                             usedNameList.remove(oldIndex);
                         }
                         nameMap.put(name, pathes[k]);
@@ -283,7 +253,6 @@ public class ClientData {
                         pathList.add(pathes[k]);
                         needList.add(need);
                         dontUpdateList.add(dontUpdate);
-                        npcAnimateList.add(npcAnimate);
                         usedNameList.add(name);
                     } // for (int k = 0; k < pathes.length; k++)
                 } // for (String pattern : patterns)
@@ -293,11 +262,9 @@ public class ClientData {
             pathList.toArray(packageDefs[i].files);
             packageDefs[i].need = new boolean[needList.size()];
             packageDefs[i].dontUpdate = new boolean[needList.size()];
-            packageDefs[i].npcAnimate = new boolean[npcAnimateList.size()];
             for (int j = 0; j < needList.size(); j++) {
                 packageDefs[i].need[j] = needList.get(j);
                 packageDefs[i].dontUpdate[j] = dontUpdateList.get(j);
-                packageDefs[i].npcAnimate[j] = npcAnimateList.get(j);
             }
             packageDefs[i].usedFileName = new String[usedNameList.size()];
             usedNameList.toArray(packageDefs[i].usedFileName);
@@ -618,7 +585,7 @@ public class ClientData {
         return tmp;
     }
     
-    private void makeClientResVersion() throws Exception {
+    public void makeClientResVersion() throws Exception {
         File clientResDir = new File(owner.baseDir, scriptsDir).getParentFile();
         File clientResVersionFile = new File(clientResDir, "clientResVersion");
         clientResVersion = (int)(System.currentTimeMillis() / 1000L);
@@ -634,7 +601,7 @@ public class ClientData {
     /*
      * 对单个机型，把客户端资源拷贝到client_pkg目录下，并生成client.data文件。
      */
-    private void makeClientData(PackageDefine pdef) throws Exception {
+    public void makeClientData(PackageDefine pdef) throws Exception {
         // 第一步，清空目标目录
         File targetDir = new File(owner.baseDir, pdef.target);
         targetDir.mkdirs();
@@ -652,41 +619,34 @@ public class ClientData {
                 tgtFile = new File(targetDir, srcFile.getName());
             } else if (fname.endsWith(".pkg") && Character.isDigit(fname.charAt(0))) {
                 int gid ;
-                int startIdx = fname.lastIndexOf('/');
-                startIdx++;
-                int idxOf_ = fname.indexOf('_', startIdx);
+                
+                int idxOf_ = fname.indexOf('_', 0);
                 if(idxOf_ != -1){
                     //大版地图
-                    gid = Integer.parseInt(fname.substring(startIdx, idxOf_));
+                    gid = Integer.parseInt(fname.substring(0, idxOf_));
                 }else{
                     //其他版本地图
-                    gid = Integer.parseInt(fname.substring(startIdx, fname.length() - 4));
+                    gid = Integer.parseInt(fname.substring(0, fname.length() - 4));
                 }
                 GameArea area = (GameArea)owner.findObject(GameArea.class, gid);
                 MapFormat format = owner.config.getClientMapFormat(pdef.uimodel);
                 srcFile = new File(owner.baseDir, "Areas/" + area.source.getName() + "/" + area.getID() + format.pkgName + ".pkg");
                 tgtFile = new File(targetDir, pdef.usedFileName[i]);
+            } else if(fname.endsWith(".jpg") || fname.endsWith(".png")){//将所有jpg后缀名换成img，防止android自动将其引入相册
+                srcFile = new File(owner.baseDir, fname);
+                tgtFile = new File(targetDir, pdef.usedFileName[i].replaceAll(".jpg", ".img").replace(".png", ".img"));
+            }else if(fname.startsWith("Animations/")){ 
+                srcFile = new File(owner.baseDir, fname);
+                tgtFile = new File(targetDir, pdef.usedFileName[i]);
             } else {
-                // 地图加载的动画文件 只使用Animations文件夹里的动画文件
-                if(!fname.endsWith(".pkg") && pdef.npcAnimate[i]){
-                    MapFormat format = owner.config.getClientMapFormat(pdef.uimodel);
-                    if(format.aniFormat.dirName != null && format.aniFormat.dirName.length() > 0){
-                        srcFile = new File(owner.baseDir, "Animations/" + format.aniFormat.dirName + "/" + fname);
-                    }else{
-                        srcFile = new File(owner.baseDir, "Animations/" + fname);
-                    }
-                    tgtFile = new File(targetDir, pdef.usedFileName[i]);
-                }else{
-                    srcFile = new File(owner.baseDir, fname);
-                    tgtFile = new File(targetDir, pdef.usedFileName[i]);
-                }
+                srcFile = new File(owner.baseDir, fname);
+                tgtFile = new File(targetDir, pdef.usedFileName[i]);
             }
             tgtFile.getParentFile().mkdirs();
             Utils.copyFile(srcFile, tgtFile);
             pdef.srcFile[i] = srcFile;
             pdef.targetFile[i] = tgtFile;
         }
-        
         // 第三步，生成client.data文件，放到scripts和client_pkg目录下的机型目录里。
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
@@ -706,7 +666,7 @@ public class ClientData {
     /* 
      * 生成某个机型的client.data文件。
      */
-    private void makeClientResourceDataFile(DataOutputStream dos, PackageDefine pdef) throws Exception {
+    public void makeClientResourceDataFile(DataOutputStream dos, PackageDefine pdef) throws Exception {
         dos.writeInt(pdef.files.length);
         for (int i = 0; i < pdef.files.length; i++) {
             dos.writeUTF(pdef.usedFileName[i]);
@@ -718,7 +678,7 @@ public class ClientData {
     /*
      * 找出所有符合一个或多个带通配符的路径的文件路径。多个pattern之间用逗号分隔。
      */
-    private String[] translateWildChars(String path) {
+    public String[] translateWildChars(String path) {
         String[] pathes = path.split(",");
         Set<String> retSet = new HashSet<String>();
         for (String p : pathes) {
@@ -776,7 +736,7 @@ public class ClientData {
     }
     
     // 带*和?的匹配模式，转换成正则表达式
-    private String wildCharsToRegExp(String wildChars) {
+    protected String wildCharsToRegExp(String wildChars) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < wildChars.length(); i++) {
             char ch = wildChars.charAt(i);
@@ -833,23 +793,5 @@ public class ClientData {
                 deleteFilesInDir(child);
             }
         }
-    }
-    
-    /**
-     * 按model来获取所有文件
-     * @param uiModel
-     * @param targetTag
-     * @return
-     */
-    public String[] getFilesByModel(String uiModel){
-    	  List<String> list = new ArrayList<String>();
-    	  for(int i = 0; i < packageDefs.length; i++){
-    		  if(packageDefs[i].uimodel.equals(uiModel)){
-    			  for(int j = 0; j < packageDefs[i].files.length; j++){
-                	  list.add(packageDefs[i].usedFileName[j]);
-                  }
-    		  }
-          }
-    	  return list.toArray(new String[0]);
     }
 }

@@ -7,12 +7,12 @@ Bundle-Activator: com.pip.game.editor.EditorPlugin
 Bundle-Vendor: PiP
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
+  org.eclipse.draw2d,
  org.eclipse.core.filesystem;bundle-version="1.2.0",
  org.eclipse.ui.ide;bundle-version="3.4.0",
  org.eclipse.ui.forms,
  com.pip.image.workshop;bundle-version="1.0.0",
- org.eclipse.jface.text;bundle-version="3.4.0",
- org.eclipse.draw2d;bundle-version="3.7.2"
+ org.eclipse.jface.text;bundle-version="3.4.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,

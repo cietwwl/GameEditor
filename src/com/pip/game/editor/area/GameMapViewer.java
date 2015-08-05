@@ -1,6 +1,7 @@
 package com.pip.game.editor.area;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,19 +13,27 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
+import com.pip.mango.jni.GLGraphics;
+import scryer.ogre.ps.ParticleEffectPlayer;
+import scryer.ogre.ps.ParticleSystemManager;
+
+import com.pip.data.EntitySpriteInfo;
+import com.pip.data.SpriteAnimation;
+import com.pip.data.SpriteInfo;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.MapFormat;
-import com.pip.game.data.ProjectData;
+import com.pip.game.data.Sprite;
 import com.pip.game.data.map.GameMapExit;
 import com.pip.game.data.map.GameMapInfo;
 import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
 import com.pip.game.data.map.GameMapPlayer;
+import com.pip.game.data.map.GamePatrolPath;
 import com.pip.game.data.map.GameRelivePoint;
 import com.pip.game.data.map.MultiTargetMapExit;
 import com.pip.game.data.vehicle.XyGameMapVehicle;
 import com.pip.game.editor.ParticleEffectManager;
-import com.pip.mango.jni.GLGraphics;
-import com.pip.mango.ps.ParticlePlayer;
+import com.pip.image.workshop.Settings;
 import com.pip.mapeditor.MapEditor;
 import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
@@ -34,6 +43,7 @@ import com.pipimage.image.PipAnimate;
 import com.pipimage.image.PipAnimateSet;
 import com.swtdesigner.SWTResourceManager;
 
+
 /**
  * 游戏地图编辑器。它从标准地图编辑器MapViewer对象中继承了地图的绘制功能，并额外实现和游戏元素相关的
  * 内容的绘制和编辑。
@@ -41,17 +51,17 @@ import com.swtdesigner.SWTResourceManager;
  */
 public class GameMapViewer extends MapViewer {
     protected GameMapInfo mapInfo;
-    protected HashMap<File, PipAnimateSet> npcImageCache = new HashMap<File, PipAnimateSet>();
+    public HashMap<File, SpriteInfo> npcImageCache = new HashMap<File, SpriteInfo>();
     protected boolean showMapNPC = true;
     protected MapFormat mapFormat;
     protected long mirrorSet = 0xFF;
     protected int[] arrLayerIndex;
     
-    protected static class NPCParticle {
+    public static class NPCParticle {
         public GameMapNPC npc;
         public int typeIndex;
         public String templateName;
-        public ParticlePlayer player;
+        public ParticleEffectPlayer player;
     }
     protected List<NPCParticle> particles = new ArrayList<NPCParticle>();
     
@@ -127,8 +137,13 @@ public class GameMapViewer extends MapViewer {
      * @return
      */
     public Rectangle getEyeShot(GameMapNPC npc) {
-    	PipAnimateSet animateSet = getCachedNPCImage(npc);
-        Rectangle bounds = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet)).getBounds();
+        SpriteInfo spriteInfo = getSpriteInfo(npc.template.image);
+        float scalar = 1.0f;
+        if(spriteInfo instanceof EntitySpriteInfo){
+            EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+            scalar = info.getMeshConfig().getScalar();
+        }
+        Rectangle bounds = getCachedNPCImage(npc).getBounds(0,scalar);
         int eyeShotRange = npc.template.eyeshot;
         Rectangle eyeShot = new Rectangle(bounds.x + bounds.width / 2 - eyeShotRange,
                                           bounds.y + bounds.height / 2 - eyeShotRange,
@@ -144,8 +159,13 @@ public class GameMapViewer extends MapViewer {
      * @return
      */
     public Rectangle getChaseDistance(GameMapNPC npc) {
-    	PipAnimateSet animateSet = getCachedNPCImage(npc);
-        Rectangle bounds = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet)).getBounds();
+        float scalar = 1.0f;
+        SpriteInfo spriteInfo = getSpriteInfo(npc.template.image);
+        if(spriteInfo instanceof EntitySpriteInfo){
+            EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+            scalar = info.getMeshConfig().getScalar();
+        }
+        Rectangle bounds = getCachedNPCImage(npc).getBounds(0, scalar);
         int chaseRange = npc.template.chaseDistance;
         Rectangle chaseDis = new Rectangle(bounds.x + bounds.width / 2 - chaseRange,
                                           bounds.y + bounds.height / 2 - chaseRange,
@@ -186,7 +206,7 @@ public class GameMapViewer extends MapViewer {
                         p.npc = npc;
                         p.typeIndex = 0;
                         p.templateName = npc.particle1;
-                        p.player = ParticleEffectManager.createPlayer(p.templateName);
+                        p.player = new ParticleEffectPlayer(ParticleEffectManager.getPsManager(), p.templateName, 0, 0);
                         p.player.setLoop(true);
                         newList.add(p);
                     } else {
@@ -203,7 +223,7 @@ public class GameMapViewer extends MapViewer {
                         p.npc = npc;
                         p.typeIndex = 1;
                         p.templateName = npc.particle2;
-                        p.player = ParticleEffectManager.createPlayer(p.templateName);
+                        p.player = new ParticleEffectPlayer(ParticleEffectManager.getPsManager(), p.templateName, 0, 0);
                         p.player.setLoop(true);
                         newList.add(p);
                     } else {
@@ -286,13 +306,12 @@ public class GameMapViewer extends MapViewer {
                     if (source == null) {
                         source = npc.template.image.getAnimateFile(0);
                     }
-                    PipAnimateSet pas = npcImageCache.get(source);
-                    if (pas ==null) {
-                    	pas =  new PipAnimateSet();
+                    if (!npcImageCache.containsKey(source)) {
+                        PipAnimateSet pas = new PipAnimateSet();
                         pas.load(source);
                         npcImageCache.put(source, pas);
                     }
-                    PipAnimate animate =pas.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(pas));
+                    PipAnimate animate = (PipAnimate)npcImageCache.get(source).getAnimation(0);
                     
                     // 检查是否在屏幕范围内
                     Rectangle rect = animate.getBounds();
@@ -340,14 +359,13 @@ public class GameMapViewer extends MapViewer {
                     File source = npc.template.image.getAnimateFile(mapFormat.aniFormat.id);
                     if (source == null) {
                         source = npc.template.image.getAnimateFile(0);
-                    } 
-                    PipAnimateSet pas = npcImageCache.get(source);
-                    if (pas ==null) {
-                    	pas = new PipAnimateSet();
+                    }
+                    if (!npcImageCache.containsKey(source)) {
+                        PipAnimateSet pas = new PipAnimateSet();
                         pas.load(source);
                         npcImageCache.put(source, pas);
                     }
-                    PipAnimate animate = pas.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(pas));
+                    PipAnimate animate = (PipAnimate)npcImageCache.get(source).getAnimation(0);
                     
                     // 检查是否在屏幕范围内
                     Rectangle rect = animate.getBounds();
@@ -482,29 +500,18 @@ public class GameMapViewer extends MapViewer {
     
     // 绘制NPC层
     protected void drawNPCLayer(GLGraphics gc, MapNPCLayer layer, int offx, int offy, Rectangle visibleRange, List<Rectangle> dirtyList, boolean includeAnimate) {
-    	 int layerIndex = -1;
-         for(int i = 0;i<map.layers.size();i++){
-             if(layer == map.layers.get(i)){
-                 layerIndex = arrLayerIndex[i];
-                 break;
-             }
-         }
-         if(layerIndex ==-1){
-             return;
-         }
-         List<GameMapObject> tmpList = new ArrayList<GameMapObject>();
-         for(GameMapObject gmObj:mapInfo.objects){
-             if(gmObj.layer == layerIndex){
-                 tmpList.add(gmObj);
-             }
-         }
-         
-         // 人物层，需要加入绘制NPC和出口的方法
-         PipAnimateSet animates = map.parent.getAnimates();
-         Object[] arr1 = layer.getNpcs().toArray();
-         //Object[] arr2 = mapInfo.objects.toArray();
-         Object[] arr2 = tmpList.toArray();
-         Object[] arr;
+        if (layer != map.groundLayer && layer != map.skyLayer) {
+            if (showMapNPC) {
+                super.drawNPCLayer(gc, layer, offx, offy, visibleRange, dirtyList, includeAnimate);
+            }
+            return;
+        }
+        
+        // 人物层，需要加入绘制NPC和出口的方法
+        PipAnimateSet animates = map.parent.getAnimates();
+        Object[] arr1 = layer.getNpcs().toArray();
+        Object[] arr2 = mapInfo.objects.toArray();
+        Object[] arr;
         
         if (tempShowNPC != null && layer == map.groundLayer) {
             arr = new Object[arr1.length + arr2.length + 1];
@@ -543,16 +550,27 @@ public class GameMapViewer extends MapViewer {
                     if (source == null) {
                         source = npc.template.image.getAnimateFile(0);
                     }
-                    PipAnimateSet pas = npcImageCache.get(source);
-                    if (pas == null) {
-                        pas = new PipAnimateSet();
-                        pas.load(source);
+                    if (!npcImageCache.containsKey(source)) {
+                        SpriteInfo pas = getSpriteInfo(npc.template.image); //  SpriteInfo.loadSprite(source);
+//                        if(pas instanceof EntitySpriteInfo){
+//                            EntitySpriteInfo info = (EntitySpriteInfo)pas;
+////                            MeshConfig mesh = (MeshConfig)pas;
+//                            GameMesh gameMesh = (GameMesh)npc.template.image;
+////                            mesh.setAnimation(gameMesh.getAnimateName());
+//                            info.getPlayer().setAnimation(gameMesh.getAnimateName(), -1);
+//                        }
                         npcImageCache.put(source, pas);
                     }
-                    PipAnimate animate = pas.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(pas));
-                    
+                    SpriteInfo spriteInfo = npcImageCache.get(source);
+                    SpriteAnimation animate = spriteInfo.getAnimation(0);
                     // 检查是否在屏幕范围内
-                    Rectangle rect = animate.getBounds();
+                    float scalar = 1.0f;
+                    if(spriteInfo instanceof EntitySpriteInfo){
+                        EntitySpriteInfo entitySpriteInfo = (EntitySpriteInfo)spriteInfo;
+                        scalar = entitySpriteInfo.getMeshConfig().getScalar();
+                    }
+                    scalar *= Settings.meshScalar;
+                    Rectangle rect = spriteInfo.getBounds(animate, scalar);
                     rect.x += npc.x * mapFormat.scale;
                     rect.y += npc.y * mapFormat.scale;
                     if (!visibleRange.intersects(rect)) {
@@ -567,24 +585,42 @@ public class GameMapViewer extends MapViewer {
                     if (npc.particle1.length() > 0) {
                         NPCParticle p = findNPCParticle(npc, 0, npc.particle1);
                         if (p != null) {
-                            synchronized(p.player.getManager()) {
+                            synchronized(ParticleEffectManager.getPsManager()) {
                                 p.player.setPosition(rx, ry);
                                 p.player.draw(gc.getHandle(), 0, 0);
                             }
                         }
                     }
-                    animate.drawAnimateFrame(gc, getCurrentTime(), rx, ry, ratio, MapEditor.imageCache);
+                    if(spriteInfo instanceof PipAnimateSet){
+                        ((PipAnimate)animate).drawAnimateFrame(gc, getCurrentTime(), rx, ry, ratio, MapEditor.imageCache);
+                    }else if(spriteInfo instanceof EntitySpriteInfo){
+                        EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+                        drawSprite(gc, npc.template.image, rx, ry,45);
+//                        MeshConfig mesh = (MeshConfig)spriteInfo;
+//                        mesh.setPosition2D(rx, ry);
+//                        info.getPlayer().setPosition(rx, ry);
+//                        GameMesh gameMesh = (GameMesh)npc.template.image;
+////                        mesh.setScale2D((float)(Settings.meshScalar * mapFormat.scale * gameMesh.scalar));
+//                        info.getPlayer().setScale((float)(Settings.meshScalar * mapFormat.scale * gameMesh.scalar));
+////                        mesh.setViewScale2D((float)ratio);
+//                        info.getPlayer().setDirection((int)Settings.mapMeshYaw);
+////                        mesh.rotateEntity(Settings.mapMeshYaw);
+////                        mesh.drawInMap(gc);
+//                        info.getPlayer().draw(gc.getHandle(), 0, 0);
+//                        info.getPlayer().cycle();
+//                        mesh.updateInMapViewer(getCurrentTime());
+                    }
                     if (npc.particle2.length() > 0) {
                         NPCParticle p = findNPCParticle(npc, 1, npc.particle2);
                         if (p != null) {
-                            synchronized(p.player.getManager()) {
+                            synchronized(ParticleEffectManager.getPsManager()) {
                                 p.player.setPosition(rx, ry);
                                 p.player.draw(gc.getHandle(), 0, 0);
                             }
                         }
                     }
                     
-                    Rectangle bounds = animate.getBounds();
+                    Rectangle bounds = spriteInfo.getBounds(animate, scalar);
                     int texty = (int)(ry + bounds.y * ratio);
                     int textx = (int)(rx + (bounds.x + bounds.width / 2) * ratio);
                     Point ts = gc.textExtent(npc.name);
@@ -616,16 +652,28 @@ public class GameMapViewer extends MapViewer {
                     if (source == null) {
                         source = npc.template.image.getAnimateFile(0);
                     }
-                    PipAnimateSet pas = npcImageCache.get(source);
-                    if (pas==null) {
-                        pas = new PipAnimateSet();
-                        pas.load(source);
+                    if (!npcImageCache.containsKey(source)) {
+                        SpriteInfo pas = getSpriteInfo(npc.template.image); //  SpriteInfo.loadSprite(source);
+//                        if(pas instanceof EntitySpriteInfo){
+//                            EntitySpriteInfo info = (EntitySpriteInfo)pas;
+////                            MeshConfig mesh = (MeshConfig)pas;
+//                            GameMesh gameMesh = (GameMesh)npc.template.image;
+////                            mesh.setAnimation(gameMesh.getAnimateName());
+//                            info.getPlayer().setAnimation(gameMesh.getAnimateName(), -1);
+//                        }
                         npcImageCache.put(source, pas);
                     }
-                    PipAnimate animate = pas.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(pas));
+                    SpriteInfo spriteInfo = npcImageCache.get(source);
+                    SpriteAnimation animate = npcImageCache.get(source).getAnimation(0);
                     
                     // 检查是否在屏幕范围内
-                    Rectangle rect = animate.getBounds();
+                    float scalar = 1.0f;
+                    if(spriteInfo instanceof EntitySpriteInfo){
+                        EntitySpriteInfo entitySpriteInfo = (EntitySpriteInfo)spriteInfo;
+                        scalar = entitySpriteInfo.getMeshConfig().getScalar();
+                    }
+                    EntitySpriteInfo entitySpriteInfo = (EntitySpriteInfo)spriteInfo;
+                    Rectangle rect = npcImageCache.get(source).getBounds(animate, scalar);
                     rect.x += npc.x * mapFormat.scale;
                     rect.y += npc.y * mapFormat.scale;
                     if (!visibleRange.intersects(rect)) {
@@ -637,9 +685,25 @@ public class GameMapViewer extends MapViewer {
                     
                     int rx = (int)(npc.x * ratio * mapFormat.scale) + offx;
                     int ry = (int)(npc.y * ratio * mapFormat.scale) + offy;
-                    animate.drawAnimateFrame(gc, getCurrentTime(), rx, ry, ratio, MapEditor.imageCache);
+                    if(spriteInfo instanceof PipAnimateSet){
+                        ((PipAnimate)animate).drawAnimateFrame(gc, getCurrentTime(), rx, ry, ratio, MapEditor.imageCache);
+                    }else if(spriteInfo instanceof EntitySpriteInfo){
+                        EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+//                        MeshConfig mesh = (MeshConfig)spriteInfo;
+//                        mesh.setScale2D((float)(Settings.meshScalar * mapFormat.scale));
+                        info.getPlayer().setScale((float)(Settings.meshScalar * mapFormat.scale));
+//                        mesh.setViewScale2D((float)ratio);
+//                        mesh.setPosition2D(rx, ry);
+                        info.getPlayer().setPosition(rx, ry);
+//                        mesh.rotateEntity(Settings.mapMeshYaw);
+                        info.getPlayer().setDirection((int)Settings.mapMeshYaw);
+//                        mesh.drawInMap(gc);
+                        info.getPlayer().draw(gc.getHandle(), 0, 0);
+//                        mesh.updateInMapViewer(getCurrentTime());
+                        info.getPlayer().cycle();
+                    }
                     
-                    Rectangle bounds = animate.getBounds();
+                    Rectangle bounds = spriteInfo.getBounds(animate, scalar);
                     int texty = (int)(ry + bounds.y * ratio);
                     int textx = (int)(rx + (bounds.x + bounds.width / 2) * ratio);
                     Point ts = gc.textExtent(npc.name);
@@ -772,7 +836,7 @@ public class GameMapViewer extends MapViewer {
         return false;
     }
     
-    public PipAnimateSet getCachedImage(GameMapObject gmo) {
+    public SpriteInfo getCachedImage(GameMapObject gmo) {
         if(gmo instanceof GameMapNPC) {
             return getCachedNPCImage((GameMapNPC)gmo);
         }
@@ -781,15 +845,22 @@ public class GameMapViewer extends MapViewer {
 
     }
     
-    public PipAnimateSet getCachedNPCImage(GameMapNPC npc) {
-        File source = npc.template.image.getAnimateFile(mapFormat.aniFormat.id);
-        if (source == null) {
-            source = npc.template.image.getAnimateFile(0);
+    public SpriteInfo getCachedNPCImage(GameMapNPC npc) {
+        File source = null;
+        try {
+            source = npc.template.image.getAnimateFile(mapFormat.aniFormat.id);
+            if (source == null) {
+                source = npc.template.image.getAnimateFile(0);
+            }
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return npcImageCache.get(source);
     }
     
-    public PipAnimateSet getCachedVehicleImage(XyGameMapVehicle npc) {
+    public SpriteInfo getCachedVehicleImage(XyGameMapVehicle npc) {
         File source = npc.template.image.getAnimateFile(mapFormat.aniFormat.id);
         if (source == null) {
             source = npc.template.image.getAnimateFile(0);
@@ -851,4 +922,56 @@ public class GameMapViewer extends MapViewer {
             }
         }
     }
+    
+    public void drawSprite(GLGraphics g, Sprite sprite, int x, int y,int dir){
+        SpriteInfo spriteInfo = getSpriteInfo(sprite);
+        if(spriteInfo instanceof EntitySpriteInfo){
+            drawEntitySpriteInfoInMap(g, (EntitySpriteInfo)spriteInfo, (GameMesh)sprite, x, y,dir);
+        } 
+    }
+    
+    public void drawEntitySpriteInfoInMap(GLGraphics g, EntitySpriteInfo spriteInfo, GameMesh gameMesh, int x, int y,int dir){
+        EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+        float scalar = (float)(Settings.meshScalar * getMapFormat().scale * info.getMeshConfig().getScalar()) * (float)getRatio();
+        info.getPlayer().setScale(scalar);
+        info.getPlayer().setDirection(dir);
+        info.getPlayer().draw(g.getHandle(), x, y);
+        info.getPlayer().cycle();
+            
+//            mesh.setPosition2D(pt.x, pt.y);
+            
+//            mesh.setScale2D((float)(Settings.meshScalar * viewer.getMapFormat().scale * gameMesh.scalar));
+//            mesh.setViewScale2D((float)viewer.getRatio());
+//            mesh.rotateEntity(Settings.mapMeshYaw);
+//            mesh.drawInMap(gc);
+//            mesh.updateInMapViewer(viewer.getCurrentTime());
+    }
+    
+    public SpriteInfo getSpriteInfo(Sprite sprite){
+        SpriteInfo spriteInfo = null;
+        File source = sprite.getAnimateFile(getMapFormat().aniFormat.id);
+        if (source == null) {
+            source = sprite.getAnimateFile(0);
+        }
+        try {
+            boolean inited = true;
+            if(!SpriteInfo.hasSprite(source)){
+                inited = false;
+            }
+            spriteInfo = SpriteInfo.getBufferedSpriteInfo(source);
+            if(spriteInfo != null && !inited){
+                if(spriteInfo instanceof EntitySpriteInfo){
+                    EntitySpriteInfo info = (EntitySpriteInfo)spriteInfo;
+                    GameMesh gameMesh = (GameMesh)sprite;
+                    info.getPlayer().setAnimation(gameMesh.getAnimateName(), -1);
+                    inited = true;
+                }
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return spriteInfo;
+    }
+    
 }

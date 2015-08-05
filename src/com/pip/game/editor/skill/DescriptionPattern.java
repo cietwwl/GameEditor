@@ -37,7 +37,7 @@ public class DescriptionPattern {
     // 描述文本
     protected String pattern;
     
-    protected static String opchars = "+-*/()";
+    private static String opchars = "+-*/()";
     
     public DescriptionPattern(BuffConfig buff) {
         this.buff = buff;
@@ -118,7 +118,7 @@ public class DescriptionPattern {
      * @param var 变量文字
      * @return 返回分段结果，变量和运算符交替
      */
-    protected String[] splitExpr(String var) {
+    private String[] splitExpr(String var) {
         List<String> ret = new ArrayList<String>();
         int state = 0;
         int tokenStart = 0;
@@ -301,7 +301,7 @@ public class DescriptionPattern {
     /*
      * 变量转换为Java代码（Buff版本）。
      */
-    protected String buffVarToCode(String varName) {
+    private String buffVarToCode(String varName) {
         StringBuilder sb = new StringBuilder();
         String[] secs = Utils.splitString(varName, '.');
         

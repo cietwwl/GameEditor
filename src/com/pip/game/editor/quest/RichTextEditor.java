@@ -39,6 +39,7 @@ import com.pip.game.data.quest.QuestVariable;
 import com.pip.game.data.quest.pqe.PQEUtils;
 import com.pip.game.editor.EditorApplication;
 import com.pip.game.editor.EditorPlugin;
+import com.pip.game.editor.property.ChooseHeadDialogs;
 import com.pip.game.editor.property.ChooseItemDialog;
 import com.pip.game.editor.property.ChooseLocationDialog;
 import com.pip.game.editor.property.ChooseNPCDialog;
@@ -52,13 +53,12 @@ import com.swtdesigner.ResourceManager;
 public class RichTextEditor extends Composite implements SelectionListener, ModifyListener {
     private Text editControl;
     private RichTextPreviewer previewer;
-    protected MenuItem[] colorMenuItems;
-    private ToolItem numberItem, moneyItem, npcItem, locationItem;
+    private MenuItem[] colorMenuItems;
+    private ToolItem npcItem, locationItem, headChooseItem;
     private MenuItem chooseItemItem;
     private List<MenuItem> variableMenuItems = new ArrayList<MenuItem>();
     private List<String> variables = new ArrayList<String>();
     private QuestInfo questInfo;
-	protected ToolBar toolBar;
 
     /**
      * Create the composite
@@ -78,7 +78,7 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         editControl.addModifyListener(this);
         editControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        toolBar = new ToolBar(this, SWT.NONE);
+        final ToolBar toolBar = new ToolBar(this, SWT.NONE);
 
         final ToolItem colorItem = new ToolItem(toolBar, SWT.DROP_DOWN);
         colorItem.setToolTipText("修改字体颜色");
@@ -87,23 +87,20 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         final Menu colorPopup = new Menu(toolBar);
         addDropDown(colorItem, colorPopup);
         
-        initColorMenuItems(colorPopup);
-
-        numberItem = new ToolItem(toolBar, SWT.PUSH);
-        numberItem.addSelectionListener(this);
-        numberItem.setToolTipText("插入数字");
-        numberItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/number.gif"));
-
-        moneyItem = new ToolItem(toolBar, SWT.PUSH);
-        moneyItem.setToolTipText("插入金钱");
-        moneyItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/money.gif"));
-        moneyItem.addSelectionListener(this);
+        colorMenuItems = new MenuItem[MapTileSelector.thumbColors.length];
+        for (int i = 0; i < MapTileSelector.thumbColors.length; i++) {
+            MenuItem mi = new MenuItem(colorPopup, SWT.PUSH);
+            mi.setImage(MapTileSelector.colorMenuImages[i]);
+            mi.setText(MapTileSelector.thumbColorNames[i]);
+            mi.addSelectionListener(this);
+            colorMenuItems[i] = mi;
+        }
 
         npcItem = new ToolItem(toolBar, SWT.PUSH);
         npcItem.setToolTipText("插入NPC");
         npcItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/mapeditor/npc.gif"));
         npcItem.addSelectionListener(this);
-
+        
         locationItem = new ToolItem(toolBar, SWT.PUSH);
         locationItem.setToolTipText("插入地图位置");
         locationItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/flag.gif"));
@@ -113,6 +110,11 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         variableItem.setToolTipText("插入变量");
         variableItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/expr.gif"));
 
+        headChooseItem = new ToolItem(toolBar, SWT.PUSH);
+        headChooseItem.setToolTipText("插入头像");
+        headChooseItem.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/chooseHead.gif"));
+        headChooseItem.addSelectionListener(this);
+        
         final Menu variablePopup = new Menu(toolBar);
         addDropDown(variableItem, variablePopup);
         
@@ -133,7 +135,10 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         }
             
         // 全局变量
-        String[] globals = getGlobalsVariables();
+        String[] globals = new String[] { 
+            "_NAME", "_SEXNAME", "_CLASSNAME", "_FACTIONNAME", "_LEVEL", "_MONEY", "_HP", "_MAXHP", "_MP", "_MAXMP", 
+            "_STR", "_STA", "_AGI", "_INT", "_LASTCHATMESSAGE"
+        };
         for (String var : globals) {
             MenuItem mi = new MenuItem(variablePopup, SWT.PUSH);
             mi.setText(ProjectData.getActiveProject().config.pqeUtils.SYSTEM_VARS_MAP.get(var).description);
@@ -146,23 +151,6 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         previewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     }
     
-    protected void initColorMenuItems(Menu colorPopup) {
-    	 colorMenuItems = new MenuItem[MapTileSelector.thumbColors.length];
-         for (int i = 0; i < MapTileSelector.thumbColors.length; i++) {
-             MenuItem mi = new MenuItem(colorPopup, SWT.PUSH);
-             mi.setImage(MapTileSelector.colorMenuImages[i]);
-             mi.setText(MapTileSelector.thumbColorNames[i]);
-             mi.addSelectionListener(this);
-             colorMenuItems[i] = mi;
-         }
-	}
-    public String[] getGlobalsVariables(){ 
-        String[] globals = new String[] { 
-            "_NAME", "_SEXNAME", "_CLASSNAME", "_FACTIONNAME", "_LEVEL", "_MONEY", "_HP", "_MAXHP", "_MP", "_MAXMP", 
-            "_STR", "_STA", "_AGI", "_INT", "_LASTCHATMESSAGE"
-        };
-        return globals;
-    }    
     public String getText() {
         return editControl.getText();
     }
@@ -171,7 +159,7 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         editControl.setText(str);
     }
 
-    protected static void addDropDown(final ToolItem item, final Menu menu) {
+    private static void addDropDown(final ToolItem item, final Menu menu) {
         item.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 // if (event.detail == SWT.ARROW) {
@@ -192,15 +180,14 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
     public void widgetDefaultSelected(SelectionEvent e) {}
 
     public void widgetSelected(SelectionEvent e) {
-    	
-    	if(handleColorItemSelelted(e)){
-    		return;
-    	}
-        if (e.getSource() == numberItem) {
-            addTag("<i>", "</i>");
-        } else if (e.getSource() == moneyItem) {
-            addTag("<m>", "</m>");
-        } else if (e.getSource() == npcItem) {
+        for (int i = 0; i < colorMenuItems.length; i++) {
+            if (e.getSource() == colorMenuItems[i]) {
+                int color = MapTileSelector.thumbColors[i];
+                addTag("<font color=\"" + Integer.toHexString(color) + "\">", "</font>");
+                return;
+            }
+        }
+        if (e.getSource() == npcItem) {
             // 选择一个NPC
             ChooseNPCDialog dlg = new ChooseNPCDialog(getShell(), ChooseNPCDialog.ONENPC);
            
@@ -228,7 +215,7 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
             }
         } else if (e.getSource() == locationItem) {
             // 选择一个位置
-            ChooseLocationDialog dlg = new ChooseLocationDialog(getShell());
+            ChooseLocationDialog dlg = new ChooseLocationDialog(getShell(),null,editControl.getText());
             if (dlg.open() == Dialog.OK && dlg.getLocation()[0] != -1) {
                 int[] location = dlg.getLocation();
                 GameMapInfo mi = GameMapInfo.findByID(ProjectData.getActiveProject(), location[0]);
@@ -256,6 +243,13 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
                     (location[2] / 8) + "</l>";
                 addString(str);
             }
+        }else if(e.getSource() == headChooseItem){
+            //选择一个头像
+            ChooseHeadDialogs dlgs = new ChooseHeadDialogs(getShell());
+            if(dlgs.open() == Dialog.OK && dlgs.getSelectedAnimation() != null){
+                String str = dlgs.getHeadString();
+                addString(str);
+            }
         }
         for (int i = 0; i < variableMenuItems.size(); i++) {
             if (e.getSource() == variableMenuItems.get(i)) {
@@ -271,7 +265,7 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         }
     }
     
-    protected void addTag(String start, String end) {
+    private void addTag(String start, String end) {
         editControl.removeModifyListener(this);
         Point pt = editControl.getSelection();
         editControl.setSelection(pt.x);
@@ -281,19 +275,8 @@ public class RichTextEditor extends Composite implements SelectionListener, Modi
         editControl.insert(end);
     }
     
-    protected void addString(String str) {
+    private void addString(String str) {
         Point pt = editControl.getSelection();
         editControl.insert(str);
-    }
-    
-    protected boolean handleColorItemSelelted(SelectionEvent e){
-    	for (int i = 0; i < colorMenuItems.length; i++) {
-            if (e.getSource() == colorMenuItems[i]) {
-                int color = MapTileSelector.thumbColors[i];
-                addTag("<c" + Integer.toHexString(color) + ">", "</c>");
-                return true;
-            }
-        }
-    	return false;
     }
 }

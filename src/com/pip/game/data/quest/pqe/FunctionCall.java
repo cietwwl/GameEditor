@@ -23,13 +23,6 @@ public class FunctionCall extends SimpleNode {
         super(p, id);
     }
 
-    public FunctionCall clone(Node parentNode){
-        FunctionCall ret = (FunctionCall)super.clone(parentNode);
-        ret.funcName = funcName;
-        
-        return ret;
-    }
-    
     /**
      * 转换为原始字符串表示。
      */

@@ -6,6 +6,11 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Menu;
 
+
+import com.pip.data.EntitySpriteInfo;
+import com.pip.data.SpriteAnimation;
+import com.pip.data.SpriteInfo;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.ProjectConfig;
 import com.pip.game.data.ProjectData;
 import com.pip.game.data.map.GameMapExit;
@@ -32,19 +37,19 @@ public class GamePickupTool implements IMapEditTool {
     // 父编辑器
     private GameAreaEditor editor;
     // 附着的编辑器
-    private GameMapViewer viewer;
+    protected GameMapViewer viewer;
     // 当前选中的游戏对象，null表示没有
-    private GameMapObject selectedObject;
+    protected GameMapObject selectedObject;
     // 是否正在拖动
-    private boolean isDragging;
+    protected boolean isDragging;
     // 是否按下shift拖动
-    private boolean shiftDragging;
+    protected boolean shiftDragging;
     // 拖动的起始点，以及拖动开始时被拖动NPC的位置
-    private Point dragStartPoint, dragStartPos;
+    protected Point dragStartPoint, dragStartPos;
     // 最近一次检测到的鼠标位置
-    private int lastX, lastY;
+    protected int lastX, lastY;
     // 正在移动NPC的按键
-    private int movingKeyCode;
+    protected int movingKeyCode;
     // 重复按键次数
     private int repeatKeyCount;
 
@@ -67,17 +72,21 @@ public class GamePickupTool implements IMapEditTool {
     }
     
     // 检查某一位置的对象
-    private GameMapObject detectObject(int x, int y) {
+    protected GameMapObject detectObject(int x, int y) {
         for (GameMapObject obj : viewer.getMapInfo().objects) {
-            if (viewer.isObjectVisible(obj) && getObjectBounds(obj).contains(x, y)) {
-                return obj;
+            try{
+                if (viewer.isObjectVisible(obj) && getObjectBounds(obj).contains(x, y)) {
+                    return obj;
+                }
+            }catch(Exception e){
+                e.printStackTrace();
             }
         }
         return viewer.player.detect(x, y);
     }
     
     // 取得一个地图对象的外框。
-    private Rectangle getObjectBounds(GameMapObject obj) {
+    protected Rectangle getObjectBounds(GameMapObject obj) {
         double scale = viewer.getMapFormat().scale;
         if (obj instanceof GameMapExit) {
             GameMapExit exit = (GameMapExit)obj;
@@ -87,14 +96,13 @@ public class GamePickupTool implements IMapEditTool {
             return bounds;
         } else if (obj instanceof GameMapNPC) {
             GameMapNPC npc = (GameMapNPC)obj;
-            PipAnimateSet animateSet = viewer.getCachedNPCImage(npc);
-            Rectangle bounds = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet)).getBounds();
+            Rectangle bounds = viewer.getCachedNPCImage(npc).getBounds(0, ((GameMesh)npc.template.image).getMeshConfig().getScalar());
             bounds.x += npc.x * scale;
             bounds.y += npc.y * scale;
             return bounds;
         } else if(obj instanceof XyGameMapVehicle){
             XyGameMapVehicle npc = (XyGameMapVehicle)obj;
-            Rectangle bounds = viewer.getCachedVehicleImage(npc).getAnimate(0).getBounds();
+            Rectangle bounds = viewer.getCachedVehicleImage(npc).getBounds(0, ((GameMesh)npc.template.image).getMeshConfig().getScalar());
             bounds.x += npc.x * scale;
             bounds.y += npc.y * scale;
             return bounds;
@@ -288,21 +296,27 @@ public class GamePickupTool implements IMapEditTool {
             // 绘制被拖动的对象
             if (selectedObject instanceof GameMapNPC) {
                 GameMapNPC npc = (GameMapNPC)selectedObject;
-                PipAnimateSet animateSet = viewer.getCachedNPCImage(npc);
-                PipAnimate animate = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet));
+                SpriteInfo info = viewer.getCachedNPCImage(npc);
+                SpriteAnimation animate = viewer.getCachedNPCImage(npc).getAnimation(0);
+                
                 Point pt = new Point((int)(npc.x * scale), (int)(npc.y * scale));
                 viewer.map2screen(pt);
-                animate.drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), null);
+                if(info instanceof PipAnimateSet){
+                    ((PipAnimate)animate).drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), null);
+                }else if(info instanceof EntitySpriteInfo){
+                    EntitySpriteInfo info2 = (EntitySpriteInfo)info;
+                    info2.getPlayer().setPosition(pt.x, pt.y);
+//                    ((MeshConfig)info).setPosition2D(pt.x, pt.y);
+//                    ((MeshConfig)info).drawInMap(null);
+//                    info2.getPlayer().draw(gc, x, y);
+                }
+                
                 
                 //绘制视野范围
                 Rectangle eyeShot = viewer.getEyeShot(npc);
                 viewer.map2screen(eyeShot);
                 gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_GREEN));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(eyeShot.x, eyeShot.y, eyeShot.width, eyeShot.height, 0, 360);
-                }else{
-                    gc.drawRectangle(eyeShot);
-                }
+                gc.drawRectangle(eyeShot);
                 //绘追击范围
                 Rectangle chaseDis = viewer.getChaseDistance(npc);
                 viewer.map2screen(chaseDis);
@@ -311,11 +325,7 @@ public class GamePickupTool implements IMapEditTool {
                             (int)(eyeShot.width * scale) + 2, (int)(eyeShot.height * scale) + 2);
                 }
                 gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(chaseDis.x, chaseDis.y, chaseDis.width, chaseDis.height, 0, 360);
-                }else{
-                    gc.drawRectangle(chaseDis);
-                }
+                gc.drawRectangle(chaseDis);
             } else if (selectedObject instanceof GameMapExit) {
                 GameMapExit exit = (GameMapExit)selectedObject;
 //                Rectangle rect = viewer.getExitIcon(exit.layer).getBounds();//.getImageDraw(0).getBounds(0);
@@ -357,22 +367,14 @@ public class GamePickupTool implements IMapEditTool {
             Rectangle bounds = getObjectBounds(selectedObject);
             viewer.map2screen(bounds);
             gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-            if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                gc.drawArc(bounds.x, bounds.y, bounds.width, bounds.height, 0, 360);
-            }else{
-                gc.drawRectangle(bounds);
-            }
+            gc.drawRectangle(bounds);
         } else {
             // 绘制选中的NPC的外框
             if (selectedObject != null) {
                 Rectangle bounds = getObjectBounds(selectedObject);
                 viewer.map2screen(bounds);
                 gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(bounds.x, bounds.y, bounds.width, bounds.height, 0, 360);
-                }else{
-                    gc.drawRectangle(bounds);
-                }
+                gc.drawRectangle(bounds);
                 
                 if(selectedObject instanceof GameMapNPC){
                     GameMapNPC npc = (GameMapNPC)selectedObject;
@@ -381,11 +383,7 @@ public class GamePickupTool implements IMapEditTool {
                     Rectangle eyeShot = viewer.getEyeShot(npc);
                     viewer.map2screen(eyeShot);
                     gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_GREEN));
-                    if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                        gc.drawArc(eyeShot.x, eyeShot.y, eyeShot.width, eyeShot.height, 0, 360);
-                    }else{
-                        gc.drawRectangle(eyeShot);
-                    }
+                    gc.drawRectangle(eyeShot);
                     //绘追击范围
                     Rectangle chaseDis = viewer.getChaseDistance(npc);
                     viewer.map2screen(chaseDis);
@@ -394,11 +392,7 @@ public class GamePickupTool implements IMapEditTool {
                                 (int)(eyeShot.width * scale) + 2, (int)(eyeShot.height * scale) + 2);
                     }
                     gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
-                    if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                        gc.drawArc(chaseDis.x, chaseDis.y, chaseDis.width, chaseDis.height, 0, 360);
-                    }else{
-                        gc.drawRectangle(chaseDis);
-                    }
+                    gc.drawRectangle(chaseDis);
                 }
             }
             
@@ -417,11 +411,7 @@ public class GamePickupTool implements IMapEditTool {
                 bounds = getObjectBounds(clickedObject);
                 viewer.map2screen(bounds);
                 gc.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(bounds.x, bounds.y, bounds.width, bounds.height, 0, 360);
-                }else{
-                    gc.drawRectangle(bounds);
-                }
+                gc.drawRectangle(bounds);
             }
         }
 
@@ -446,21 +436,26 @@ public class GamePickupTool implements IMapEditTool {
             // 绘制被拖动的对象
             if (selectedObject instanceof GameMapNPC) {
                 GameMapNPC npc = (GameMapNPC)selectedObject;
-                PipAnimateSet animateSet = viewer.getCachedNPCImage(npc);
-                PipAnimate animate = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet));
+                SpriteInfo info = viewer.getCachedNPCImage(npc);
+                SpriteAnimation animate = viewer.getCachedNPCImage(npc).getAnimation(0);
+                
                 Point pt = new Point((int)(npc.x * scale), (int)(npc.y * scale));
                 viewer.map2screen(pt);
-                animate.drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), MapEditor.imageCache);
+                if(info instanceof PipAnimateSet){
+                    ((PipAnimate)animate).drawAnimateFrame(gc, viewer.getCurrentTime(), pt.x, pt.y, viewer.getRatio(), MapEditor.imageCache);
+                }else if(info instanceof EntitySpriteInfo){
+                    EntitySpriteInfo info2 = (EntitySpriteInfo)info;
+//                    ((MeshConfig)info).setPosition2D(pt.x, pt.y);
+//                    ((MeshConfig)info).drawInMap(gc);
+                    info2.getPlayer().draw(gc.getHandle(), pt.x, pt.y);
+                }
+                
                 
                 //绘制视野范围
                 Rectangle eyeShot = viewer.getEyeShot(npc);
                 viewer.map2screen(eyeShot);
                 gc.setColor(SWTResourceManager.getColor(SWT.COLOR_GREEN));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(eyeShot.x + eyeShot.width / 2, eyeShot.y + eyeShot.height / 2, eyeShot.width, eyeShot.height, 0, 360);
-                }else{
-                    gc.drawRect(eyeShot);
-                }
+                gc.drawRect(eyeShot);
                 //绘追击范围
                 Rectangle chaseDis = viewer.getChaseDistance(npc);
                 viewer.map2screen(chaseDis);
@@ -469,11 +464,7 @@ public class GamePickupTool implements IMapEditTool {
                             (int)(eyeShot.width * scale) + 2, (int)(eyeShot.height * scale) + 2);
                 }
                 gc.setColor(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(chaseDis.x + chaseDis.width / 2, chaseDis.y + chaseDis.height / 2, chaseDis.width, chaseDis.height, 0, 360);
-                }else{
-                    gc.drawRect(chaseDis);
-                }
+                gc.drawRect(chaseDis);
             } else if (selectedObject instanceof GameMapExit) {
                 GameMapExit exit = (GameMapExit)selectedObject;
 //                Rectangle rect = viewer.getExitIcon(exit.layer).getBounds();//.getImageDraw(0).getBounds(0);
@@ -515,22 +506,14 @@ public class GamePickupTool implements IMapEditTool {
             Rectangle bounds = getObjectBounds(selectedObject);
             viewer.map2screen(bounds);
             gc.setColor(SWTResourceManager.getColor(SWT.COLOR_RED));
-            if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                gc.drawArc(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, bounds.width, bounds.height, 0, 360);
-            }else{
-                gc.drawRect(bounds);
-            }
+            gc.drawRect(bounds);
         } else {
             // 绘制选中的NPC的外框
             if (selectedObject != null) {
                 Rectangle bounds = getObjectBounds(selectedObject);
                 viewer.map2screen(bounds);
                 gc.setColor(SWTResourceManager.getColor(SWT.COLOR_BLUE));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, bounds.width, bounds.height, 0, 360);
-                }else{
-                    gc.drawRect(bounds);
-                }
+                gc.drawRect(bounds);
                 
                 if(selectedObject instanceof GameMapNPC){
                     GameMapNPC npc = (GameMapNPC)selectedObject;
@@ -539,11 +522,7 @@ public class GamePickupTool implements IMapEditTool {
                     Rectangle eyeShot = viewer.getEyeShot(npc);
                     viewer.map2screen(eyeShot);
                     gc.setColor(SWTResourceManager.getColor(SWT.COLOR_GREEN));
-                    if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                        gc.drawArc(eyeShot.x + eyeShot.width / 2, eyeShot.y + eyeShot.height / 2, eyeShot.width, eyeShot.height, 0, 360);
-                    }else{
-                        gc.drawRect(eyeShot);
-                    }
+                    gc.drawRect(eyeShot);
                     //绘追击范围
                     Rectangle chaseDis = viewer.getChaseDistance(npc);
                     viewer.map2screen(chaseDis);
@@ -552,11 +531,7 @@ public class GamePickupTool implements IMapEditTool {
                                 (int)(eyeShot.width * scale) + 2, (int)(eyeShot.height * scale) + 2);
                     }
                     gc.setColor(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
-                    if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                        gc.drawArc(chaseDis.x + chaseDis.width / 2, chaseDis.y + chaseDis.height / 2, chaseDis.width, chaseDis.height, 0, 360);
-                    }else{
-                        gc.drawRect(chaseDis);
-                    }
+                    gc.drawRect(chaseDis);
                 }
             }
             
@@ -571,15 +546,20 @@ public class GamePickupTool implements IMapEditTool {
 //                int th = map.parent.getTileHeight();
 //                bounds = new Rectangle(cx * tw, cy * th, tw, th);
             } else {
+//                if(clickedObject instanceof GameMapNPC){
+//                    GameMapNPC npc = (GameMapNPC)clickedObject;
+//                    if(viewer.getCachedNPCImage(npc) instanceof MeshConfig){
+//                        Rectangle bounds2 = viewer.getCachedNPCImage(npc).getBounds(0);
+//                        bounds2.x += npc.x * scale;
+//                        bounds2.y += npc.y * scale;
+//                        int a = 0;
+//                    }
+//                }
                 // 点中NPC
                 bounds = getObjectBounds(clickedObject);
                 viewer.map2screen(bounds);
                 gc.setColor(SWTResourceManager.getColor(SWT.COLOR_RED));
-                if(ProjectData.getActiveProject().config.npcBoxDrawRound){
-                    gc.drawArc(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, bounds.width, bounds.height, 0, 360);
-                }else{
-                    gc.drawRect(bounds);
-                }
+                gc.drawRect(bounds);
             }
         }
 

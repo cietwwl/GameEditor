@@ -34,13 +34,13 @@ import com.pipimage.image.PipAnimateSet;
 import com.pipimage.utils.Utils;
 
 public class AnimationEditor extends DefaultDataObjectEditor {
-	protected Text textDescription;
-	protected Text textTitle;
-	protected Text textID;
+    private Text textDescription;
+    private Text textTitle;
+    private Text textID;
     public static final String ID = "com.pip.game.editor.AnimationEditor"; //$NON-NLS-1$
-    protected CTabFolder tabFolder;
-    protected CTabItem[] formatTabs;
-    protected AnimationFileChooser[] formatEditors;
+    private CTabFolder tabFolder;
+    private CTabItem[] formatTabs;
+    private AnimationFileChooser[] formatEditors;
     
     public static int lastSelectedFormat = -1;
     
@@ -82,27 +82,7 @@ public class AnimationEditor extends DefaultDataObjectEditor {
         textDescription.addFocusListener(AutoSelectAll.instance);
         textDescription.addModifyListener(this);
 
-        initAnimateChooser(container);
-        initData();
-        setDirty(false);
-        setPartName(this.getEditorInput().getName());
-        saveStateToUndoBuffer();
-    }
-    
-    protected void initData(){
-    	 // 设置初始值
-        Animation dataDef = (Animation)editObject;
-        textID.setText(String.valueOf(dataDef.id));
-        textTitle.setText(dataDef.title);
-        textDescription.setText(dataDef.description);
-        for (int i = 0; i < formatEditors.length; i++) {
-            formatEditors[i].setupFile();
-            formatEditors[i].setupHeadArea();
-        }
-    }
-    
-    protected void initAnimateChooser(Composite container){
-    	tabFolder = new CTabFolder(container, SWT.NONE);
+        tabFolder = new CTabFolder(container, SWT.NONE);
         tabFolder.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
                 lastSelectedFormat = tabFolder.getSelectionIndex();
@@ -123,6 +103,20 @@ public class AnimationEditor extends DefaultDataObjectEditor {
             lastSelectedFormat = 0;
         }
         tabFolder.setSelection(lastSelectedFormat);
+
+        // 设置初始值
+        Animation dataDef = (Animation)editObject;
+        textID.setText(String.valueOf(dataDef.id));
+        textTitle.setText(dataDef.title);
+        textDescription.setText(dataDef.description);
+        for (int i = 0; i < formatEditors.length; i++) {
+            formatEditors[i].setupFile();
+            formatEditors[i].setupHeadArea();
+        }
+
+        setDirty(false);
+        setPartName(this.getEditorInput().getName());
+        saveStateToUndoBuffer();
     }
 
     /**

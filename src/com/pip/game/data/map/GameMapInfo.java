@@ -1361,8 +1361,4 @@ public class GameMapInfo {
         }
         return ret;
     }
-    
-    public String[] getNpcAnimationFiles(String model){
-        return new String[0];
-    }
 }

@@ -44,7 +44,7 @@ import com.pip.game.editor.util.IconChooser;
 import com.pip.util.AutoSelectAll;
 
 public class BuffEditor extends DefaultDataObjectEditor implements SelectionListener {
-    private Text textGroupID;
+    protected Text textGroupID;
     public Combo getComboMergeStrategy() {
         return comboMergeStrategy;
     }
@@ -54,21 +54,22 @@ public class BuffEditor extends DefaultDataObjectEditor implements SelectionList
     }
 
     protected Combo comboMergeStrategy;
-    private IconChooser iconChooser;
+    protected IconChooser iconChooser;
     protected Combo comboMaxLevel;
-    private Text textDesc;
-    private Text textTitle;
-    private Text textID;
-    private Button buttonGood, buttonDispelable;
+    protected Text textDesc;
+    protected Text textTitle;
+    protected Text textID;
+    protected Button buttonGood;
+    protected Button buttonDispelable;
     public static final String ID = "com.pip.sanguo.editor.skill.BuffEditor"; //$NON-NLS-1$
 
     protected WeaponChooser weaponChooser;
-    private EffectConfigSetEditor effectEditor;
+    protected EffectConfigSetEditor effectEditor;
     protected boolean updating = false;
-    private Button areaBuffButton;
-    private Button buttonOffline;
-    private Label typeLabel;
-    private Button buttonKeepOnDie;
+    protected Button areaBuffButton;
+    protected Button buttonOffline;
+    protected Label typeLabel;
+    protected Button buttonKeepOnDie;
     public BuffExtPropManager getExtPropManager() {
         return extPropManager;
     }
@@ -77,9 +78,9 @@ public class BuffEditor extends DefaultDataObjectEditor implements SelectionList
         this.extPropManager = extPropManager;
     }
 
-    private BuffExtPropManager extPropManager;
-    private Button buttonFindConflict;
-    private Button buttonFindRelate;
+    protected BuffExtPropManager extPropManager;
+    protected Button buttonFindConflict;
+    protected Button buttonFindRelate;
 
     /**
      * Create contents of the editor part
@@ -477,7 +478,7 @@ public class BuffEditor extends DefaultDataObjectEditor implements SelectionList
         updating = false;
     }
     
-    private void resetEffectEditor() {
+    protected void resetEffectEditor() {
         BuffConfig dataDef = (BuffConfig) editObject;
         
         try{
@@ -610,7 +611,7 @@ public class BuffEditor extends DefaultDataObjectEditor implements SelectionList
         }
     }
     
-    private class ViewBuffAction extends Action {
+    public class ViewBuffAction extends Action {
         private BuffConfig buff;
         
         public ViewBuffAction(BuffConfig buff) {
@@ -622,7 +623,7 @@ public class BuffEditor extends DefaultDataObjectEditor implements SelectionList
         }
     }
     
-    private class ViewSkillAction extends Action {
+    public class ViewSkillAction extends Action {
         private SkillConfig skill;
         
         public ViewSkillAction(SkillConfig skill) {

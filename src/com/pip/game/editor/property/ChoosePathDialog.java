@@ -30,25 +30,18 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+
 import com.pip.game.data.DataObject;
 import com.pip.game.data.GameArea;
 import com.pip.game.data.GameAreaInfo;
 import com.pip.game.data.ProjectData;
 import com.pip.game.data.map.GameMapInfo;
-import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
 import com.pip.game.data.map.GamePatrolPath;
-import com.pip.game.editor.EditorApplication;
-import com.pip.game.editor.EditorPlugin;
 import com.pip.game.editor.area.GameMapViewer;
-import com.pip.game.editor.property.ChooseNPCDialog.PickupNPCTool;
-import com.pip.game.editor.property.ChooseNPCDialog.TreeContentProvider;
-import com.pip.game.editor.property.ChooseNPCDialog.TreeLabelProvider;
-import com.pip.game.editor.property.ChoosePatrolPathDialog.PickupPatrolPathTool;
 import com.pip.game.editor.quest.GameAreaCache;
 import com.pip.image.workshop.WorkshopPlugin;
 import com.pip.mango.jni.GLGraphics;
-import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.data.MapFile;
 import com.pip.mapeditor.tool.IMapEditTool;

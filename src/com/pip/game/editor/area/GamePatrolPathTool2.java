@@ -1,23 +1,19 @@
 package com.pip.game.editor.area;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Menu;
 
+
 import com.pip.game.data.map.GameMapInfo;
-import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
 import com.pip.game.data.map.GamePatrolPath;
 import com.pip.mango.jni.GLGraphics;
 import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.tool.IMapEditTool;
-import com.pipimage.image.PipAnimate;
 import com.swtdesigner.SWTResourceManager;
 
 /**

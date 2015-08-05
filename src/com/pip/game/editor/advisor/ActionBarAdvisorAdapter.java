@@ -63,87 +63,88 @@ import com.pipimage.utils.Utils;
 import com.swtdesigner.ResourceManager;
 
 public class ActionBarAdvisorAdapter implements IGameActionBarAdvisor{
-    private Action openglAction;
+    protected Action openglAction;
     // 命令：切换项目目录
-    private Action switchProjectAction;
-    private Action openWorkingDirAction;
+    protected Action switchProjectAction;
+    protected Action openWorkingDirAction;
 //    private Action packEquipmentsAction;
     
-    private Action i18nCodeAction2;
-    private Action i18nCodeAction;
-    private Action i18nDataAction;
-    private Action i18nScriptAction;
-    private Action i18nAdjustRefAction;
-    private Action i18nCheckAction;
-    private Action i18nMergeAction;
+    protected Action i18nCodeAction2;
+    protected Action i18nCodeAction;
+    protected Action i18nDataAction;
+    protected Action i18nScriptAction;
+    protected Action i18nAdjustRefAction;
+    protected Action i18nCheckAction;
+    protected Action i18nMergeAction;
 
-    private Action generatePackageAction;
-    private Action cleanGabageAction;
-    private Action optimizeAnimationAction;
-    private Action adjustImageModeAction;
-    private Action updatepriceAction;
-    private Action updateAllNpcmapAction;
-    private Action generateMapListAction;
+    protected Action generatePackageAction;
+    protected Action cleanGabageAction;
+    protected Action optimizeAnimationAction;
+    protected Action adjustImageModeAction;
+    protected Action updatepriceAction;
+    protected Action updateAllNpcmapAction;
+    protected Action generateMapListAction;
     protected Action generateSkillClassesAction;
-    private Action generateQuestClassesAction;
+    protected Action generateQuestClassesAction;
     protected Action generateAIClassesAction;
     protected Action generateBuffClassesAction;
-    private Action generateVersionAction;
+    public Action generateVersionAction;
     /**生成世界地图选项*/
-    private Action generateWorldMapAction;
+    protected Action generateWorldMapAction;
     /**生成世界地图信息选项*/
-    private Action generateWorldMapInfoAction;
+    protected Action generateWorldMapInfoAction;
     /**导出任务信息选项*/
-    private Action exportQuestIndexForExcel;
+    protected Action exportQuestIndexForExcel;
     /**导出物品信息选项*/
-    private Action exportItemIndexForExcel;
+    protected Action exportItemIndexForExcel;
     /**导出物品信息选项(带图标)*/
-    private Action exportItemIndexForExcelWithIcon;
+    protected Action exportItemIndexForExcelWithIcon;
     /**导出装备信息选项*/
-    private Action exportEquipmentIndexForExcel;
+    protected Action exportEquipmentIndexForExcel;
     /**导出装备信息选项(带图标)*/
-    private Action exportEquipmentIndexForExcelWithIcon;
+    protected Action exportEquipmentIndexForExcelWithIcon;
     /** 导出所有地图png图片  */
-    private Action exportMapPng;
-    private IWorkbenchAction openPerspectiveDialogAction;
-    private IWorkbenchAction closeAllPerspectivesAction;
-    private IWorkbenchAction closePerspectiveAction;
-    private IWorkbenchAction resetPerspectiveAction;
-    private IWorkbenchAction savePerspectiveAction;
-    private IWorkbenchAction editActionSetsAction;
-    private Action viewDataListViewAction;
-    private Action viewDirectoryAction;
-    private Action viewTileViewAction;
-    private Action viewTileLibraryAction;
+    protected Action exportMapPng;
+    protected IWorkbenchAction openPerspectiveDialogAction;
+    protected IWorkbenchAction closeAllPerspectivesAction;
+    protected IWorkbenchAction closePerspectiveAction;
+    protected IWorkbenchAction resetPerspectiveAction;
+    protected IWorkbenchAction savePerspectiveAction;
+    protected IWorkbenchAction editActionSetsAction;
+    protected Action viewDataListViewAction;
+    protected Action viewDirectoryAction;
+    protected Action viewTileViewAction;
+    protected Action viewTileLibraryAction;
 
-    private Action redoAction;
-    private Action undoAction;
-    private IWorkbenchAction saveAllAction;
-    private IWorkbenchAction saveAsAction;
-    private IWorkbenchAction saveAction;
-    private IWorkbenchAction closeAllAction;
-    private IWorkbenchAction closeAction;
-    private IWorkbenchAction exitAction;
+    protected Action redoAction;
+    protected Action undoAction;
+    protected IWorkbenchAction saveAllAction;
+    protected IWorkbenchAction saveAsAction;
+    protected IWorkbenchAction saveAction;
+    protected IWorkbenchAction closeAllAction;
+    protected IWorkbenchAction closeAction;
+    protected IWorkbenchAction exitAction;
     protected IWorkbenchWindow mainWindow;
 
-    private Action sizeAction6;
-    private Action sizeAction5;
-    private Action sizeAction4;
-    private Action sizeAction3;
-    private Action sizeAction2;
-    private Action sizeAction1;
+    protected Action sizeAction7;
+    protected Action sizeAction6;
+    protected Action sizeAction5;
+    protected Action sizeAction4;
+    protected Action sizeAction3;
+    protected Action sizeAction2;
+    protected Action sizeAction1;
     
     /** 导出所有地图NPC名字及其坐标  */
-    private Action exportMapNPCInfo;
+    protected Action exportMapNPCInfo;
     
     /** 导出所有地图列表，及地图数据信息，NPC数量、占用内存大小等等 */
-    private Action exportMapInfo;
+    protected Action exportMapInfo;
     /** pkg包解压缩 */
-    private Action extractPackageFileAction;
+    protected Action extractPackageFileAction;
     
-    private IBarAdvisorRegisterAction iABA;
+    protected IBarAdvisorRegisterAction iABA;
     
-    private Action userLocationAction;
+    protected Action userLocationAction;
     
     public ActionBarAdvisorAdapter(IBarAdvisorRegisterAction iABA) {
         this.iABA = iABA;
@@ -268,6 +269,8 @@ public class ActionBarAdvisorAdapter implements IGameActionBarAdvisor{
 
         sizeMenu.add(sizeAction6);
         
+        sizeMenu.add(sizeAction7);
+        
         final MenuManager viewMenu = new MenuManager("&View");
         menuBar.add(viewMenu);
 
@@ -336,7 +339,13 @@ public class ActionBarAdvisorAdapter implements IGameActionBarAdvisor{
             }
         };
 
-        sizeAction6 = new Action("960x640") {
+        sizeAction6 = new Action("960x540") {
+            public void run() {
+                com.pip.image.workshop.Settings.setScreenSize(960, 540);
+            }
+        };
+        
+        sizeAction7 = new Action("960x640") {
             public void run() {
                 com.pip.image.workshop.Settings.setScreenSize(960, 640);
             }

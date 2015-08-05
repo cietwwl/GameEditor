@@ -27,12 +27,12 @@ import com.pip.util.AutoSelectAll;
  * 打造配方编辑器。
  */
 public class FormulaEditor extends DefaultDataObjectEditor {
-	protected Text textMovePoint;
+    private Text textMovePoint;
     private Text textMaxAmount;
     private Combo comboProductType;
     private Text textRequirement;
-    protected Text textMoney;
-    protected Text textLevel;
+    private Text textMoney;
+    private Text textLevel;
     private Text textMinAmount;
     private Text textDescription;
     private Text textTitle;
@@ -45,8 +45,6 @@ public class FormulaEditor extends DefaultDataObjectEditor {
     private Label labelDropGroup;
     private Button buttonChooseDropGroup;
     protected Composite container;
-    protected Label labelLevel;
-    protected Label labelMovePoint;
 
     /**
      * Create contents of the editor part
@@ -88,9 +86,9 @@ public class FormulaEditor extends DefaultDataObjectEditor {
         textDescription.addFocusListener(AutoSelectAll.instance);
         textDescription.addModifyListener(this);
 
-        labelLevel = new Label(container, SWT.NONE);
-        labelLevel.setLayoutData(new GridData());
-        labelLevel.setText("技能等级：");
+        final Label label_4 = new Label(container, SWT.NONE);
+        label_4.setLayoutData(new GridData());
+        label_4.setText("技能等级：");
 
         textLevel = new Text(container, SWT.BORDER);
         final GridData gd_textLevel = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -108,9 +106,9 @@ public class FormulaEditor extends DefaultDataObjectEditor {
         textMoney.addFocusListener(AutoSelectAll.instance);
         textMoney.addModifyListener(this);
 
-        labelMovePoint = new Label(container, SWT.NONE);
-        labelMovePoint.setLayoutData(new GridData());
-        labelMovePoint.setText("消耗行动力：");
+        final Label label_8 = new Label(container, SWT.NONE);
+        label_8.setLayoutData(new GridData());
+        label_8.setText("消耗行动力：");
 
         textMovePoint = new Text(container, SWT.BORDER);
         final GridData gd_textMovePoint = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);

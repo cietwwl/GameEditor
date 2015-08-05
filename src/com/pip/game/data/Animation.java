@@ -13,11 +13,7 @@ import com.pipimage.image.PipImage;
  * 游戏动画对象。
  * @author lighthu
  */
-public class Animation extends DataObject {
-    /**
-     * 所属项目。
-     */
-    public ProjectData owner;
+public class Animation extends Sprite {
     /**
      * 各版本动画文件名。
      */
@@ -26,28 +22,25 @@ public class Animation extends DataObject {
      * 各版本攻击动画文件名。
      */
     public String[] attackAnimateFiles;
-    /**
-     * 头像X位置（标准版）。
-     */
-    public short headAreaX;
-    /**
-     * 头像Y位置（标准版）。
-     */
-    public short headAreaY;
+//    /**
+//     * 头像X位置（标准版）。
+//     */
+//    public short headAreaX;
+//    /**
+//     * 头像Y位置（标准版）。
+//     */
+//    public short headAreaY;
     
     public Animation(ProjectData owner) {
-        this.owner = owner;
+        super(owner);
         int size = owner.config.animationFormats.size();
         animateFiles = new String[size];
         attackAnimateFiles = new String[size];
     }
-
-    public boolean equals(Object o){
-        return this == o;
-    }
     
-    public String toString() {
-        return id + ": " + title;
+    @Override
+    public int getType() {
+        return ANIMATION;
     }
 
     public void update(DataObject obj) {
@@ -183,6 +176,10 @@ public class Animation extends DataObject {
         animateFiles[format] = file.getName();
     }
     
+    public void setAnimateFile(int format, String path){
+        animateFiles[format] = path;
+    }
+    
     /**
      * 设置某个版本的攻击动画文件。
      */
@@ -249,4 +246,5 @@ public class Animation extends DataObject {
             return 0;
         }
     }
+    
 }

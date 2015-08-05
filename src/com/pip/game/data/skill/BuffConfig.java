@@ -371,8 +371,6 @@ public class BuffConfig extends DataObject implements IBuffConfig{
             e.printStackTrace();
             throw new IllegalArgumentException();
         }
-        effects.setLevelCount(maxLevel);
-        
         implClass = elem.getAttributeValue("class");
         extPropEntries.loadExtData(elem.getChild("extProps"));
         if (elem.getAttribute("groupid") != null) {

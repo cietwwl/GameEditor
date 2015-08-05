@@ -36,10 +36,10 @@ import com.pip.image.workshop.editor.ImageViewerListener;
 import com.pipimage.image.PipImage;
 
 public class ChooseSkillIconDialog extends Dialog implements ImageViewerListener {
-	protected int selectedIconIndex = -1;
-    protected ImageViewer[] previewers;
-    protected PipImage[] pimg;
-	
+    private int selectedIconIndex = -1;
+    private ImageViewer[] previewers;
+    private PipImage[] pimg;
+    
     public int getSelectedIconIndex() {
         return selectedIconIndex;
     }
@@ -69,17 +69,8 @@ public class ChooseSkillIconDialog extends Dialog implements ImageViewerListener
         gridLayout.marginHeight = 0;
         gridLayout.horizontalSpacing = 0;
         container.setLayout(gridLayout);
-        
-        initPreviewers(container);
-        
-        return container;
-    }
 
-    /**
-     * ³õÊ¼»¯Í¼Æ¬Ô¤ÀÀ¿Ø¼þ
-     */
-    protected void initPreviewers(Composite container){
-    	previewers = new ImageViewer[pimg.length];
+        previewers = new ImageViewer[pimg.length];
         for (int i = 0; i < previewers.length; i++) {
             previewers[i] = new ImageViewer(container, SWT.NONE);
             previewers[i].setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -90,6 +81,8 @@ public class ChooseSkillIconDialog extends Dialog implements ImageViewerListener
             previewers[i].zoomin();
             previewers[i].setImageViewerListener(this);
         }
+        
+        return container;
     }
 
     /**

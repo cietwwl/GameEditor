@@ -2,7 +2,6 @@ package com.pip.game.data.item;
 
 import org.jdom.Element;
 
-import com.pip.game.data.Animation;
 import com.pip.game.data.DataObject;
 import com.pip.game.data.MonsterGroup;
 import com.pip.game.data.NPCTemplate;

@@ -26,6 +26,8 @@ public abstract class DataObject implements Comparable {
      * ±êÌâ/Ãû×Ö¡£
      */
     public String title = "";
+    
+    
     /**
      * ÃèÊö¡£
      */

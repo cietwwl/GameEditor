@@ -67,42 +67,43 @@ public class EffectConfigManager implements Cloneable {
             
             CLASS_CONFIGS.put(clz, es);
                         
-            //永久buff
-//            TYPE_CLASSES.put(-1, StaticGeneralConfig.class);
-            es = new EffectSetup();
-            es.id = -1;
-            es.typeNames = new String[0];
-            es.typeParames = new String[0];
-            es.supportBuff = BuffConfig.BUFF_TYPE_STATIC;
-            es.supportedSkillType = 0;
-            CLASS_CONFIGS.put(StaticGeneralConfig.class, es);
-            
-            //临时buff
-//            TYPE_CLASSES.put(-2, DynamicGeneralConfig.class);
-            es = new EffectSetup();
-            es.id = -2;
-            es.typeNames = new String[]{"","","",""};
-            es.typeParames = new String[]{ "duration", "round_times","battle_times","times"};
-            es.supportBuff = BuffConfig.BUFF_TYPE_DYNAMIC;
-            es.supportedSkillType = 0;
-            CLASS_CONFIGS.put(DynamicGeneralConfig.class, es);
-            
-            //装备buff            
-//            TYPE_CLASSES.put(-3, EquipGeneralConfig.class);
-            es = new EffectSetup();
-            es.id = -3;
-            es.typeNames = new String[]{"",""};
-            es.typeParames = new String[]{"buff_effect_value" };
-            es.supportBuff = BuffConfig.BUFF_TYPE_EQUIP;
-            es.supportedSkillType = 0;
-            CLASS_CONFIGS.put(EquipGeneralConfig.class, es);
         }
+        //永久buff
+//            TYPE_CLASSES.put(-1, StaticGeneralConfig.class);
+        EffectSetup es = new EffectSetup();
+        es.id = -1;
+        es.typeNames = new String[0];
+        es.typeParames = new String[0];
+        es.supportBuff = BuffConfig.BUFF_TYPE_STATIC;
+        es.supportedSkillType = 0;
+        CLASS_CONFIGS.put(StaticGeneralConfig.class, es);
+        
+        //临时buff
+//            TYPE_CLASSES.put(-2, DynamicGeneralConfig.class);
+        es = new EffectSetup();
+        es.id = -2;
+        es.typeNames = new String[]{"","","",""};
+        es.typeParames = new String[]{ "duration", "round_times","battle_times","times"};
+        es.supportBuff = BuffConfig.BUFF_TYPE_DYNAMIC;
+        es.supportedSkillType = 0;
+        CLASS_CONFIGS.put(DynamicGeneralConfig.class, es);
+        
+        //装备buff            
+//            TYPE_CLASSES.put(-3, EquipGeneralConfig.class);
+        es = new EffectSetup();
+        es.id = -3;
+        es.typeNames = new String[]{"",""};
+        es.typeParames = new String[]{"buff_effect_value" };
+        es.supportBuff = BuffConfig.BUFF_TYPE_EQUIP;
+        es.supportedSkillType = 0;
+        CLASS_CONFIGS.put(EquipGeneralConfig.class, es);
+        
         if (sb.length() > 0) {
             throw new Exception("重复的效果类型:" + sb.toString());
         }
     }
     
-    private static int getOrRelation(String str) {
+    protected static int getOrRelation(String str) {
         String[] ors = str.replace(" ", "").split("\\|");
         int ret = 0;
         for(int i=0; i<ors.length; i++) {

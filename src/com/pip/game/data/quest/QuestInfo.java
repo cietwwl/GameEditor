@@ -1,8 +1,10 @@
 package com.pip.game.data.quest;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,7 +17,6 @@ import java.util.zip.GZIPOutputStream;
 import org.jdom.Element;
 
 import com.pip.game.data.DataObject;
-import com.pip.game.data.ProjectData;
 import com.pip.game.data.i18n.I18NContext;
 import com.pip.game.data.i18n.I18NUtils;
 import com.pip.game.data.quest.pqe.Expression;
@@ -51,29 +52,29 @@ public class QuestInfo extends DataObject{
      * 客户端任务用到的系统函数配置表。
      */
     public static final String GTL_SYS_FUNCS_CONFIG = 
-        "0x0010=short Random()\n" +
-        "0x0037=int GetGlobalInt(String varName)\n" + 
-        "0x0039=String GetGlobalString(String varName)\n" +
-        "0x4001=boolean PQE_HasTask(int taskID)\n" +
-        "0x4002=boolean PQE_CanFinish()\n" +
-        "0x4003=void PQE_Chat(int npcID, String message, int notifyID)\n" +
-        "0x4004=void PQE_Message(String message, int timout, int notifyID)\n" +
-        "0x4005=void PQE_Question(String message, String options, int notifyID)\n" +
-        "0x4006=void PQE_OpenUI(String uiName)\n" +
-        "0x4007=void PQE_Flash(int frames)\n" +
-        "0x4008=void PQE_GotoMap(int mapID, int x, int y)\n" +
-        "0x4009=void PQE_Logout()\n" +
-        "0x400A=int PQE_GetItemCount(int itemID)\n" +
-        "0x400B=boolean PQE_HasItem(int itemID, int count)\n" +
-        "0x400C=boolean PQE_E_Approach(int mapID, int x, int y, int distance)\n" +
-        "0x400D=boolean PQE_E_EnterMap(int mapID)\n" +
-        "0x400E=boolean PQE_E_TouchNPC(int npcID)\n" +
-        "0x4013=boolean PQE_E_AnswerQuestion(int notifyID, int optionID)\n" +
-        "0x4014=boolean PQE_E_CloseChat(int notifyID)\n" +
-        "0x4015=boolean PQE_E_CloseMessage(int notifyID)\n" +
-        "0x4016=void PQE_Listen(int mask)\n" +
-        "0x4017=int PQE_GetEventMask()\n" +
-        "0x4018=int PQE_HasEqu(int equipId)\n";
+        "short Random()\n" +
+        "int GetGlobalInt(String varName)\n" + 
+        "String GetGlobalString(String varName)\n" +
+        "boolean PQE_HasTask(int taskID)\n" +
+        "boolean PQE_CanFinish()\n" +
+        "void PQE_Chat(int npcID, String message, int notifyID)\n" +
+        "void PQE_Message(String message, int timout, int notifyID)\n" +
+        "void PQE_Question(String message, String options, int notifyID)\n" +
+        "void PQE_OpenUI(String uiName)\n" +
+        "void PQE_Flash(int frames)\n" +
+        "void PQE_GotoMap(int mapID, int x, int y)\n" +
+        "void PQE_Logout()\n" +
+        "int PQE_GetItemCount(int itemID)\n" +
+        "boolean PQE_HasItem(int itemID, int count)\n" +
+        "boolean PQE_E_Approach(int mapID, int x, int y, int distance)\n" +
+        "boolean PQE_E_EnterMap(int mapID)\n" +
+        "boolean PQE_E_TouchNPC(int npcID)\n" +
+        "boolean PQE_E_AnswerQuestion(int notifyID, int optionID)\n" +
+        "boolean PQE_E_CloseChat(int notifyID)\n" +
+        "boolean PQE_E_CloseMessage(int notifyID)\n" +
+        "void PQE_Listen(int mask)\n" +
+        "int PQE_GetEventMask()\n" +
+        "int PQE_HasEqu(int equipId)";
     
     
     public QuestInfo(Quest owner) {
@@ -434,11 +435,7 @@ public class QuestInfo extends DataObject{
         PrintWriter out = new PrintWriter(buf);
         
         // 文件头
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("VERSION 3;");
-        }else{
-            out.println("VERSION 4;");
-        }
+        out.println("VERSION 4;");
         out.println("ID " + owner.id +";");
         out.println("ATTRIBUTE 32;");
         out.println("NAME \"quest\";");
@@ -455,11 +452,7 @@ public class QuestInfo extends DataObject{
 
         // 为每个任务目标的完成条件建立一个回调函数，名字是target0
         for (int i = 0; i < owner.targets.size(); i++) {
-            if(ProjectData.getActiveProject().config.scriptVersion < 4){
-                out.println("FUNCTION CALLBACK target" + i + "() {");
-            }else{
-                out.println("int FUNCTION CALLBACK target" + i + "() {");
-            }
+            out.println("boolean FUNCTION CALLBACK target" + i + "() {");
             out.println("    int temp;");
             out.print("    temp = ");
             ExpressionList exprList = ExpressionList.fromString(owner.targets.get(i).condition);
@@ -481,11 +474,7 @@ public class QuestInfo extends DataObject{
             exprList = ExpressionList.fromString(triggers.get(i).action);
             exprList.searchRelateNPC(relateNPCs);
         }
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION CALLBACK interact(int npc) {");
-        }else{
-            out.println("int FUNCTION CALLBACK interact(int npc) {");
-        }
+        out.println("int FUNCTION CALLBACK interact(int npc) {");
         if (relateNPCs.size() == 0) {
             out.println("    return 0;");
         } else {
@@ -506,11 +495,7 @@ public class QuestInfo extends DataObject{
         List<Integer> triggerEventMasks = new ArrayList<Integer>();
         int eventMask = 0;
         for (int i = 0; i < clientTriggers.size(); i++) {
-            if(ProjectData.getActiveProject().config.scriptVersion < 4){
-                out.println("FUNCTION trigger" + i + "() {");
-            }else{
-                out.println("void FUNCTION trigger" + i + "() {");
-            }
+            out.println("void FUNCTION trigger" + i + "() {");
             out.println("    int temp;");
             
             // 生成条件，短路计算
@@ -575,21 +560,13 @@ public class QuestInfo extends DataObject{
         }
         
         // init函数中指定此脚本需要监听的事件类型
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION init() {");
-        }else{
-            out.println("void FUNCTION init() {");
-        }
+        out.println("void FUNCTION init() {");
         out.println("    PQE_Listen(" + eventMask + ");");
         out.println("}");
         out.println();
         
         // cycle函数中依次调用所有触发器的函数
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION cycle() {");
-        }else{
-            out.println("void FUNCTION cycle() {");
-        }
+        out.println("void FUNCTION cycle() {");
         out.println("    int mask = PQE_GetEventMask();");
         for (int i = 0; i < clientTriggers.size(); i++) {
             if ((triggerEventMasks.get(i) & PQEUtils.EVENT_MASK_CYCLE) != 0) {
@@ -604,39 +581,19 @@ public class QuestInfo extends DataObject{
         out.println();
         
         // cycleUI, paint, destroy, processPacket函数都为空
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION cycleUI() {");
-        }else{
-            out.println("void FUNCTION cycleUI() {");
-        }
+        out.println("void FUNCTION cycleUI() {");
         out.println("}");
         out.println();
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION paint() {");
-        }else{
-            out.println("void FUNCTION paint() {");
-        }
+        out.println("void FUNCTION paint() {");
         out.println("}");
         out.println();
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION destroy() {");
-        }else{
-            out.println("void FUNCTION destroy() {");
-        }
+        out.println("void FUNCTION destroy() {");
         out.println("}");
         out.println();
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION processPacket() {");
-        }else{
-            out.println("void FUNCTION processPacket() {");
-        }
+        out.println("void FUNCTION event() {");
         out.println("}");
         out.println();
-        if(ProjectData.getActiveProject().config.scriptVersion < 4){
-            out.println("FUNCTION event() {");
-        }else{
-            out.println("void FUNCTION event() {");
-        }
+        out.println("void FUNCTION processPacket() {");
         out.println("}");
         out.println();
         
@@ -657,7 +614,13 @@ public class QuestInfo extends DataObject{
                         String gtl = generateClientGTL();
                         //System.out.println(gtl);
                         Properties systemFuncs = new Properties();
-                        systemFuncs.load(new ByteArrayInputStream(GTL_SYS_FUNCS_CONFIG.getBytes()));
+                        BufferedReader br = new BufferedReader(new StringReader(GTL_SYS_FUNCS_CONFIG));
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            if (line.trim().length() > 0) {
+                                systemFuncs.put(line, line);
+                            }
+                        }
                         byte[] rawETF = GTLCompiler.compileInMemory(gtl, systemFuncs);
                         ByteArrayOutputStream bos = new ByteArrayOutputStream();
                         GZIPOutputStream zos = new GZIPOutputStream(bos);

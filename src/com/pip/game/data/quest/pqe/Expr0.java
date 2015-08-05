@@ -425,14 +425,6 @@ public class Expr0 extends SimpleNode {
         }
     }
     
-    public Expr0 clone(Node parentNode){
-        Expr0 ret = (Expr0)super.clone(parentNode);
-        ret.type = type;
-        ret.value = value;
-        
-        return ret;
-    }
-    
     // 把变量名转换为索引变量名
     private static String convertVarNameToIndex(String varName, String[] localVars) {
         for (int i = 0; i < localVars.length; i++) {

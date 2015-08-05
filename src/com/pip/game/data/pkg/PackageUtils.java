@@ -63,7 +63,7 @@ public class PackageUtils {
      * @param colorMode 颜色优化模式：-2表示不优化，-1表示自动优化成256色，>=0表示用地图文件中指定的调色板优化，-3表示JPEG压缩
      */
     public void makeClientPackage(GameArea area, MapFile mapFile, GameAreaInfo info, 
-            PackageFile target, float ratio, int colorMode, JPEGMergeOption jpegOption, 
+            PackageFile target, float ratio, int colorMode, JPEGMergeOption jpegOption,
             CompressTextureOption compTexOption) throws Exception {
         target.setName("GAMEPKG");
         target.setVersion(0);

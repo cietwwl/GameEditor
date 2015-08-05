@@ -116,14 +116,7 @@ public class ChooseAIDialog extends Dialog {
                         }
                     }
                 }
-                if(includeEmptyItem){
-                    Object[] ret = new Object[retList.size()+1];
-                    ret[0] = genEmptyAIData();
-                    System.arraycopy(retList.toArray(), 0, ret, 1, retList.size());
-                    return ret;
-                }else{
-                	return retList.toArray();
-                }
+                return retList.toArray();
             } 
             else if (parentElement instanceof DataObjectCategory) {
                 List<AIData>  retList= new ArrayList<AIData>();
@@ -163,7 +156,6 @@ public class ChooseAIDialog extends Dialog {
     private TreeViewer treeViewer;
     private Tree tree;
     private boolean includeItem = true;
-    private boolean includeEmptyItem = false;
     private boolean multiSel = false;
     private AIData selectedAIData;
     
@@ -198,10 +190,7 @@ public class ChooseAIDialog extends Dialog {
     public void setIncludeItem(boolean value) {
         includeItem = value;
     }
-
-	public void setIncludeEmptyItem(boolean value) {
-		includeEmptyItem = value;
-	}
+    
     public void setMultiSel(boolean value) {
         multiSel = value;
     }
@@ -298,11 +287,4 @@ public class ChooseAIDialog extends Dialog {
         super.configureShell(newShell);
         newShell.setText("Ñ¡ÔñAIÄ£°å");
     }    
-    
-    protected AIData genEmptyAIData(){
-    	AIData ai = new AIData(null);
-    	ai.id = 0;
-    	ai.title = "¿ÕAI";
-    	return ai;
-    }
 }

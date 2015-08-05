@@ -6,9 +6,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
-import com.pip.game.data.ProjectData;
-import com.pip.game.data.skill.SkillConfig;
-
 /**
  * 属性描述：粒子效果选择。
  */

@@ -15,13 +15,16 @@ import org.eclipse.swt.widgets.Text;
 
 import com.pip.game.data.Animation;
 import com.pip.game.editor.DataListView;
-import com.pip.game.editor.DefaultDataObjectEditor;
 import com.pip.game.editor.property.ChooseAnimationDialog;
 
 public class AnimationChooser extends Composite {
     
+    public static interface AnimationChooserHandler{
+        void onSelectAnimation(Animation animation);
+    }
+    
     private Animation selectedObject;
-    private DefaultDataObjectEditor listener;
+    private AnimationChooserHandler handler;
     
     private Text textText;
     
@@ -54,7 +57,7 @@ public class AnimationChooser extends Composite {
         chooseButton.setText("...");
         chooseButton.addSelectionListener(new SelectionAdapter(){
             public void widgetSelected(SelectionEvent e) {
-                onChooseAnimation();
+                chooseAnimation();
             }
         });
     }
@@ -63,8 +66,8 @@ public class AnimationChooser extends Composite {
         modifyListener = l;
     }
     
-    public void setHandler(DefaultDataObjectEditor handle) {
-        this.listener = handle;
+    public void setHandler(AnimationChooserHandler handler) {
+        this.handler = handler;
     }
     
     public Animation getSelectedObject() {
@@ -83,14 +86,14 @@ public class AnimationChooser extends Composite {
     /**
      * 调出图标选择对话框
      */
-    private void onChooseAnimation(){
+    private void chooseAnimation(){
         ChooseAnimationDialog dlg = new ChooseAnimationDialog(getShell());
         if (selectedObject != null) {
             dlg.setSelectedAnimation(selectedObject.id);
         }
         if (dlg.open() == Dialog.OK) {
             setSelectedObject(dlg.getSelectedAnimation());
-            listener.setDirty(true);
+            handler.onSelectAnimation(dlg.getSelectedAnimation());
             if (modifyListener != null) {
                 modifyListener.modifyText(null);
             }

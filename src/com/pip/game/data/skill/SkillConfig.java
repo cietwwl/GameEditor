@@ -126,6 +126,11 @@ public class SkillConfig extends DataObject implements ISkillConfig{
      * 伤害类型
      */
     public int damageType;
+    
+    /**
+     * 辅助动作
+     */
+    public int assistAction = 0;
     /**
      * 准备动画
      */
@@ -702,7 +707,7 @@ public class SkillConfig extends DataObject implements ISkillConfig{
         out.println("        iconId = " + iconID + ";");
         out.println("        prepareAnimation = " + prepareAnimation + ";");
         out.println("        castAnimation = " + castAnimation + ";");
-        out.println("        hitAnimation = " + hitAnimation + ";");
+//        out.println("        hitAnimation = " + hitAnimation + ";");
         out.println("        trackAnimation = " + locusAnimation + ";");
         switch (clazz) {
         case 0:

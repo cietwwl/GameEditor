@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,8 +30,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.jdom.Document;
 import org.jdom.Element;
 
-import com.pip.game.data.AI.AIData;
 import com.pip.game.data.Shop.ShopItem;
+import com.pip.game.data.AI.AIData;
 import com.pip.game.data.equipment.Equipment;
 import com.pip.game.data.forbid.ForbidItem;
 import com.pip.game.data.forbid.ForbidSkill;
@@ -97,7 +96,7 @@ public class ProjectData {
     // 不同分支的客户端数据配置文件（key是branch名称，""表示缺省分支）
     protected Hashtable<String, ClientData> branchClientData;
     // 不同的客户端渠道号对应的分支版本
-    private Hashtable<String, String> channelToBranch;
+    protected Hashtable<String, String> channelToBranch;
     
     /** CMCC道具代码设置 */
     public CmccConfig cmccConfig;
@@ -144,6 +143,9 @@ public class ProjectData {
             if (config.supportDataClasses[i] == cls || config.supportDataSuperClasses[i] == cls) {
                 return i;
             }
+            if(cls.isAssignableFrom(config.supportDataClasses[i])){
+                return i;
+            }
         }
         return -1;
     }
@@ -155,6 +157,9 @@ public class ProjectData {
     public int getEditableIndexByType(Class cls) {
         for (int i = 0; i < config.editableClasses.length; i++) {
             if (config.editableClasses[i] == cls || config.editableClasses[i].getSuperclass() == cls) {
+                return i;
+            }
+            if(cls.isAssignableFrom(config.editableClasses[i])){
                 return i;
             }
         }
@@ -490,6 +495,48 @@ public class ProjectData {
         return item;
     }
 
+    public Item newItem(DataObjectCategory category, Object selectObject,int itemType){
+        int newItemId = 1;
+        switch(itemType){
+            case 0://魔石
+                newItemId = 1020001;
+                break;
+            case 1://粉末
+                newItemId = 1030001;
+                break;
+            case 2://圣翼碎片+图纸
+            case 3:
+                newItemId = 1050001;
+                break;
+            case 4://时装+合成器
+                newItemId = 1060001;
+                break;
+            case 5://任务物品
+                newItemId = 1080001;
+                break;
+            case 6://活动物品
+                newItemId = 1090001;
+                break;
+            case 7://运营道具
+                newItemId = 1100001;
+                break;
+            case 8://特殊材料->铁矿石
+            case 9://特殊材料->女神印章
+            case 10://特殊材料->金装碎片
+                newItemId = 1110001;
+                break;
+        }
+        Item item = new Item(this);
+        while (findItemOrEquipment(newItemId) != null) {
+            newItemId++;
+        }
+        item.id = newItemId;
+        if (category != null) {
+            item.setCategoryName(category.name);
+        }
+        addObjectToList(Item.class, item, selectObject);
+        return item;
+    }
     /**
      * 新建一个装备，并分配id，添加到类型列表中
      * @param equiType
@@ -498,7 +545,7 @@ public class ProjectData {
     public Equipment newEquipment(DataObjectCategory category, Object selectObject) throws Exception{
         Equipment equi = (Equipment) newObject(Equipment.class, selectObject);
         // 装备和物品公用id，需要分段从百万开始
-        equi.id = 1000000;
+        equi.id = 1010001;
         while (true) {
             Item obj = findItemOrEquipment(equi.id);
             if(obj == null || obj == equi){
@@ -578,6 +625,9 @@ public class ProjectData {
             if (config.supportDataClasses[i] == cls || config.supportDataSuperClasses[i] == cls) {
                 return new File(baseDir, config.dataFiles[i]);
             }
+            if(cls.isAssignableFrom(config.supportDataClasses[i])){
+                return new File(baseDir, config.dataFiles[i]);
+            }
         }
         return null;
     }
@@ -600,7 +650,11 @@ public class ProjectData {
                     Element root = new Element(config.dataRootTags[i]);
                     Document doc = new Document(root);
                     saveData(root, dataCateLists[i], null);
-                    Utils.saveDOM(doc, new File(baseDir, config.dataFiles[i]));
+                    try{
+                        Utils.saveDOM(doc, new File(baseDir, config.dataFiles[i]));
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
         } finally {
@@ -628,7 +682,7 @@ public class ProjectData {
         }
     }
     
-    private void saveData(Element root, List<DataObjectCategory> _dataCateLists, DataObjectCategory category) {
+    public void saveData(Element root, List<DataObjectCategory> _dataCateLists, DataObjectCategory category) {
         for (DataObjectCategory cate : _dataCateLists) {
             cate.parent = category;
             for (DataObject obj : cate.objects) {
@@ -726,7 +780,12 @@ public class ProjectData {
         
         // 载入可编辑数据
         for (int i = config.supportDataClasses.length - 1; i >= 0; i--) {
-            Document doc = Utils.loadDOM(new File(baseDir, config.dataFiles[i]));
+            Document doc = null;
+            try{
+                doc = Utils.loadDOM(new File(baseDir, config.dataFiles[i]));
+            }catch(Exception e){
+                e.printStackTrace();
+            }
             List list = doc.getRootElement().getChildren(config.dataTags[i]);
             HashMap<String, DataObjectCategory> cateMap = new HashMap<String, DataObjectCategory>();
             
@@ -1057,7 +1116,7 @@ public class ProjectData {
                 FileOutputStream fos = new FileOutputStream(jf);
                 PrintWriter pw = new PrintWriter(new OutputStreamWriter(fos, encoding));
                 if(ProjectData.activeProject.config.AutoGenQuestClass == null) {
-                	Quest.generateJava(bc, pw, Settings.questPackage, Settings.questClassPrefix);
+                	bc.generateJava(pw, Settings.questPackage, Settings.questClassPrefix);
                 } else {
                 	Class c;
                 	ProjectConfig config = ProjectData.activeProject.config;
@@ -1211,36 +1270,6 @@ public class ProjectData {
         } catch (Exception e) {
             return 0;
         }
-        
-        // 如果设置了mango_version_type变量，按设置的算法做
-        String versionType = System.getProperty("mango_version_type");
-        if (versionType != null) {
-            if ("crc16".equals(versionType)) {
-                return (content.length << 16) | (crc16(content) & 0xFFFF);
-            } else {
-                return (content.length << 8) | (crc8(content) & 0xFF);
-            }
-        }
-        
-        // 配置的crc8和crc16切换日期前，用crc8，后用crc16
-        if (file.lastModified() < config.crc8Tocrc16Time) {
-            return (content.length << 8) | (crc8(content) & 0xFF);
-        } else {
-            return (content.length << 16) | (crc16(content) & 0xFFFF);
-        }
-    }
-    
-    public int getFileCRCVersion(byte[] content){
-    	// 如果设置了mango_version_type变量，按设置的算法做
-        String versionType = System.getProperty("mango_version_type");
-        if (versionType != null) {
-            if ("crc16".equals(versionType)) {
-                return (content.length << 16) | (crc16(content) & 0xFFFF);
-            } else {
-                return (content.length << 8) | (crc8(content) & 0xFF);
-            }
-        }
-        
         return (content.length << 16) | (crc16(content) & 0xFFFF);
     }
     
@@ -1339,6 +1368,8 @@ public class ProjectData {
      * @param useBranch 使用分支
      */
     public String translateFileName(String name, String model, String useBranch) {
+        File tmpFile = new File(name);
+        String filename = tmpFile.getName();
         if (branchClientData == null) {
             try {
                 loadAllClientData();
@@ -1358,29 +1389,22 @@ public class ProjectData {
             // 优先搜索客户端内置资源
             if (name.endsWith(".etf")) {
                 ret = clientData.getScriptsDir() + "/" + model + "/" + (name.substring(0, name.length() - 4)) + "_" + model + ".etf.gz";
+            } else if ((ret = clientData.getMatchPath(model, name)) != null) {
+                // nothing to do
             } else if (name.endsWith(".pkg") && Character.isDigit(name.charAt(0))) {
                 int id ;
                 
-                int idxDirectory = name.lastIndexOf('/');
-                String fname = null;
-                if(idxDirectory != -1){
-                    fname = name.substring(idxDirectory + 1);
-                }else{
-                    fname = name;
-                }
-                int idxOf_ = fname.indexOf('_', 0);
+                int idxOf_ = name.indexOf('_', 0);
                 if(idxOf_ != -1){
                     //大版地图
-                    id = Integer.parseInt(fname.substring(0, idxOf_));
+                    id = Integer.parseInt(name.substring(0, idxOf_));
                 }else{
                     //其他版本地图
-                    id = Integer.parseInt(fname.substring(0, fname.length() - 4));
+                    id = Integer.parseInt(name.substring(0, name.length() - 4));
                 }
                 GameArea area = (GameArea)findObject(GameArea.class, id);
                 String pkgName = config.getClientMapFormat(model).pkgName;
                 ret = "Areas/" + area.source.getName() + "/" + id + pkgName + ".pkg";
-            } else if ((ret = clientData.getMatchPath(model, name)) != null) {
-                // nothing to do
             } else if (name.endsWith(".ctn")) {
                 if (Character.isDigit(name.charAt(0))) {
                     int id = Integer.parseInt(name.substring(0, name.length() - 4));
@@ -1400,6 +1424,16 @@ public class ProjectData {
                     if (!new File(baseDir, ret).exists()) {
                         ret = findFile("client_res", name, true, useBranch);
                     }
+                }
+            } else if (name.endsWith(".mcfg")) {
+                ret = findFile("Meshes", name, true, useBranch);
+            } else if (name.endsWith(".mesh")) {
+                ret = findFile("Meshes", name, true, useBranch);
+            } else if (name.endsWith(".skeleton")) {
+                ret = findFile("Meshes", name, true, useBranch);
+            } else if (filename.startsWith("m_")) {
+                if(name.endsWith(".jpg") || name.endsWith(".png")){
+                    ret = findFile("Meshes", name, true, useBranch);
                 }
             } else if (name.endsWith(".pip")) {
                 ret = findFile("client_res/" + model, name, true, useBranch);
@@ -1567,9 +1601,6 @@ public class ProjectData {
             return 0;
         }
     }
-    public int getFileVersion(String name, String model, int texType) {
-        return getFileVersion(name, model);
-    }
     
     /**
      * 判断一个文件是否是客户端必须文件，使用缺省分支。
@@ -1644,9 +1675,6 @@ public class ProjectData {
     public byte[] downloadFile(String name, String model) {
         return downloadFile(name, model, branch);
     }
-    public byte[] downloadFile(String name, String model, int textType) {
-        return downloadFile(name, model);
-    }
     
     /**
      * 下载文件。这个方法可以用来下载CTN，PIP和ETF文件。PKG文件还是通过PackageUtils.makeClientPackage来获得。使用指定分支。
@@ -1659,94 +1687,6 @@ public class ProjectData {
         try {
             String path = translateFileName(name, model, useBranch);
             byte[] ret = findFile(path);
-            if (config.ignoreJ2ME) {
-                return ret;
-            }
-            
-            // 下载PIP图片时，7370和K750需要特殊处理：7370因为用halfbuffer，所以图片必须是
-            // 非合并模式的；而K750为了减少图片对象，必须是合并模式的。其他机型尽量采用合并模式，
-            // 但对带有半透明的图片不用合并模式。
-            if (name.endsWith(".pip") && Character.isDigit(name.charAt(0))) {
-                if ("Nokia7370".equals(model)) {
-                    path += "/Nokia7370";
-                    byte[] nret = resourceCache.get(path);
-                    if (nret == null) {
-                        try {
-                            PipImage img = new PipImage();
-                            img.load(new ByteArrayInputStream(ret));
-                            if (img.isMergeMode()) {
-                                img.setMergeMode(false);
-                                img.setSupportColorOp(false);
-                                ByteArrayOutputStream bos = new ByteArrayOutputStream(ret.length + 1000);
-                                DataOutputStream dos = new DataOutputStream(bos);
-                                img.save(dos, true);
-                                dos.close();
-                                nret = bos.toByteArray();
-                            } else {
-                                nret = ret;
-                            }
-                        } catch (Exception e) {
-                            System.err.println("file format warning: " + name + "/" + model);
-                            e.printStackTrace();
-                            nret = ret;
-                        }
-                    }
-                    ret = nret;
-                } else if ("SEK750".equals(model)) {
-                    path += "/SEK750";
-                    byte[] nret = resourceCache.get(path);
-                    if (nret == null) {
-                        try {
-                            PipImage img = new PipImage();
-                            img.load(new ByteArrayInputStream(ret));
-                            if (!img.isMergeMode()) {
-                                img.setMergeMode(true);
-                                img.setSupportColorOp(false);
-                                ByteArrayOutputStream bos = new ByteArrayOutputStream(ret.length + 1000);
-                                DataOutputStream dos = new DataOutputStream(bos);
-                                img.save(dos, true);
-                                dos.close();
-                                nret = bos.toByteArray();
-                            } else {
-                                nret = ret;
-                            }
-                        } catch (Exception e) {
-                            System.err.println("file format warning: " + name + "/" + model);
-                            e.printStackTrace();
-                            nret = ret;
-                        }
-                    }
-                    ret = nret;
-                } else {
-                    path += "/Other";
-                    byte[] platformRet = resourceCache.get(path);
-                    if (platformRet == null) {
-                        try {
-                            PipImage img = new PipImage();
-                            img.load(new ByteArrayInputStream(ret));
-                            if (config.tryMergePip && !img.isMergeMode() && !img.hasHalfTransparent() && img.getFrameCount() < 30) {
-                                img.setMergeMode(true);
-                                img.setSupportColorOp(false);
-                                ByteArrayOutputStream bos = new ByteArrayOutputStream(ret.length + 1000);
-                                DataOutputStream dos = new DataOutputStream(bos);
-                                img.save(dos, true);
-                                dos.close();
-                                platformRet = bos.toByteArray();
-                            } else {
-                                platformRet = ret;
-                            }
-                        } catch (Exception e) {
-                            System.err.println("file format warning: " + name + "/" + model);
-                            e.printStackTrace();
-                            platformRet = ret;
-                        }
-                    }
-                    ret = platformRet;
-                }
-            }
-            if (cacheFile && ret != null) {
-                resourceCache.put(path, ret);
-            }
             return ret;
         } catch (Exception e) {
             System.err.println("file not found: " + name + "/" + model);
@@ -2110,25 +2050,6 @@ public class ProjectData {
         }
     }
     
-    //将所有资源文件预先载入到缓存，加快用户登录速度
-    public void catchAllFile() throws Exception {
-        for(ClientData clientData : branchClientData.values()){
-        	String[] allFiles = clientData.getAllFiles();
-        	
-        	for(String fullName : allFiles){
-        		byte[] fileData = findFile(fullName);
-        		
-        		if(fileData != null){
-        			Integer obj = resourceVersion.get(fullName);
-                    if (obj == null) {
-                        int v = getFileCRCVersion(fileData);
-                        resourceVersion.put(fullName, v);
-                    }
-        		}
-        	}
-        }
-    }
-    
     /**
      * 强制从缓存中清除某个文件，下次使用时重新载入。
      * @param path 文件相对于data目录的全路径，例如client_res/channel.data。
@@ -2342,24 +2263,5 @@ public class ProjectData {
         }
     }
     
-    /**
-     * 地图中显示NPC时使用的动画索引-编辑器用
-     * @param animateSet
-     * @return
-     */
-    public int getDefaultNPCAnimateIndex(PipAnimateSet animateSet){
-		return 0;
-    }
-    
     public static ProjectDataFactory projDataFactory = new ProjectDataFactory();
-    
-    public static void main(String[] args) {
-        File file = new File("C:\\Users\\light.hu\\Desktop\\1_e.pkg");
-        byte[] content = null;
-        try {
-            content = Utils.loadFileData(file);
-        } catch (Exception e) {
-        }
-        System.out.println((content.length << 16) | (crc16(content) & 0xFFFF));
-    }
 }

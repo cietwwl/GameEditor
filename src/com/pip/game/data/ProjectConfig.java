@@ -151,8 +151,7 @@ public class ProjectConfig {
     /** 粒子效果列表 */
     public String[] particleFiles;
     
-    /** 粒子效果分类列表 */
-    public Map<String, List<String>> particleFilesGroup = new HashMap<String, List<String>>();
+    public String[] passdoorParticleFiles;
     
     /** 图标系列。每个系列有一个名字标识，包含一组图标文件。第一个图标文件的图标ID为0-999，第二个为1000-1999，依此类推。 */
     public Map<String, PipImage[]> iconSeries = new HashMap<String, PipImage[]>();
@@ -166,6 +165,9 @@ public class ProjectConfig {
     public Map<Integer, MapFormat> mapFormats = new HashMap<Integer, MapFormat>();
     /** 本项目支持的动画文件格式 */
     public Map<Integer, AnimationFormat> animationFormats = new HashMap<Integer, AnimationFormat>();
+    /** 本项目支持的模型文件格式 */
+    public Map<Integer, GameMeshFormat> meshFormats = new HashMap<Integer, GameMeshFormat>();
+    
     /** 本项目支持的机型 */
     public Map<String, ClientModel> clientModels = new HashMap<String, ClientModel>();
     /** 缺省机型 */
@@ -201,35 +203,19 @@ public class ProjectConfig {
     
     public String gameMapNpcClass;
     
-    public String gameMapExitClass;
-    
-    public String richTextEditorClass;
-    
     /** 所属项目 */
     private ProjectData owner;
     // 是否保存关卡时自动生成pkg文件，缺省为true。如果项目需要手动优化pkg文件，那么需要把这个选项设置为false，以防覆盖掉优化后的pkg文件
-    public boolean autoGeneratePackage = true;
+    public boolean autoGeneratePackage = false;
     // 是否在保存关卡时使用真彩色模式，真彩色模式能够为手工优化提供更优质的原始资源，而且速度更快
-    public boolean useTrueColourForMap = false;
+    public boolean useTrueColourForMap = true;
     // 文件版本号算法，从CRC8过度到CRC16的时间
     public long crc8Tocrc16Time = 1324396800228L;
     // 关卡中是否包含建筑信息（用于明珠城项目）
     public boolean includeBuildingInPackage = false;
     // 怪物组中怪物排列位置描述
     public String monsterPositionDescription = null;
-    // 是否尝试合并pip文件
-    public boolean tryMergePip = true;
-    // DataObjectInput是否使用长名
-    public boolean useLongName;
-    // 脚本所使用的版本(默认为3)
-    public int scriptVersion;
-    // 幻象II使用，战斗类型 
-    public byte BATTLE_TYPE ;  
-    // 是否无视J2ME转换处理
-    public boolean ignoreJ2ME = false;
-    // 选中的NPC的外框是否画成圆形
-    public boolean npcBoxDrawRound = false;
-    
+
     public ProjectConfig(ProjectData owner) {
         this.owner = owner;
     }
@@ -251,8 +237,6 @@ public class ProjectConfig {
         AutoGenAIClass = doc.getRootElement().getAttributeValue("AutoGenAIClass");
         gameMapInfoClass = doc.getRootElement().getAttributeValue("GameMapInfoClass");
         gameMapNpcClass = doc.getRootElement().getAttributeValue("GameMapNpcClass");
-        gameMapExitClass = doc.getRootElement().getAttributeValue("GameMapExitClass");
-        richTextEditorClass = doc.getRootElement().getAttributeValue("RichTextEditorClass");
         
         List list = doc.getRootElement().getChildren("res");
         list = ((Element )list.get(0)).getChildren("res");
@@ -291,7 +275,8 @@ public class ProjectConfig {
             PipAnimateSet[] imgs = new PipAnimateSet[list2.size()];
             for (int j = 0; j < list2.size(); j++) {
                 imgs[j] = new PipAnimateSet();
-                imgs[j].load(new File(owner.baseDir, ((Element)list2.get(j)).getAttributeValue("path")));
+                String path = ((Element)list2.get(j)).getAttributeValue("path");
+                imgs[j].load(new File(owner.baseDir, path));
             }
             ctsSeries.put(name, imgs);
         }
@@ -313,23 +298,19 @@ public class ProjectConfig {
             particleFiles = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 particleFiles[i] = ((Element)list.get(i)).getAttributeValue("file");
-                
-                //粒子效果应用环境信息
-                String context = ((Element)list.get(i)).getAttributeValue("context");
-                if(context!=null){
-                	String[] groups = context.split("\\|");
-                	for(String group : groups){
-                		List tmpList = particleFilesGroup.get(group);
-                		if(tmpList==null){
-                			tmpList = new ArrayList<String>();
-                        	particleFilesGroup.put(group, tmpList);
-                		}
-                		tmpList.add(particleFiles[i]);
-                	}
-                }
             }
         } else {
             particleFiles = new String[0];
+        }
+        Element doorListElem = doc.getRootElement().getChild("passdoor_effects");
+        if (doorListElem != null) {
+            list = doorListElem.getChildren("passdoor_effect");
+            passdoorParticleFiles = new String[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                passdoorParticleFiles[i] = ((Element)list.get(i)).getAttributeValue("file");
+            }
+        } else {
+            passdoorParticleFiles = new String[0];
         }
         
         Element clzes = doc.getRootElement().getChild("supportDataClasses");
@@ -485,6 +466,13 @@ public class ProjectConfig {
             af.load(elem);
             animationFormats.put(af.id, af);
         }
+        list = compElem.getChildren("mesh_format");
+        for (int i = 0; i < list.size(); i++) {
+            elem = (Element)list.get(i);
+            GameMeshFormat mf = new GameMeshFormat();
+            mf.load(elem);
+            meshFormats.put(mf.id, mf);
+        }
         list = compElem.getChildren("map_format");
         for (int i = 0; i < list.size(); i++) {
             elem = (Element)list.get(i);
@@ -546,28 +534,6 @@ public class ProjectConfig {
             monsterPositionDescription = mgpElem.getAttributeValue("value");
         }
         
-        // 20130425新增：允许禁止pip合并逻辑
-        Element mgElem = doc.getRootElement().getChild("try_merge_pip");
-        if(mgElem != null) {
-            tryMergePip = "true".equals(mgElem.getTextTrim());
-        }
-        
-        // 20130606新增：脚本编译所使用的版本，用于自动生成的脚本代码
-        Element svElem = doc.getRootElement().getChild("script_version");
-        if(mgElem != null) {
-            scriptVersion = Integer.parseInt(svElem.getTextTrim());
-        }else{
-            scriptVersion = 3;
-        }
-        
-        // 20131017新增：幻象II使用，用于定义战斗类型
-        Element battleTypeElem = doc.getRootElement().getChild("battle_type");
-        if(mgElem != null) {
-        	BATTLE_TYPE = Byte.parseByte(battleTypeElem.getTextTrim());
-        }else{
-        	BATTLE_TYPE = -1;
-        }
-        
         // 20140223新增：可用于配制PipImage的3个选项
         // allowMultiCompressTexturesInOneFile: 是否允许一个pip中包含多个压缩纹理（需要幻想2以后的引擎），以提高压缩效率
         // ignoreBorderForSingleFrameImage：单帧图片不加边
@@ -578,18 +544,6 @@ public class ProjectConfig {
             PipImage.ignoreBorderForSingleFrameImage = "true".equals(pipImageConfigElem.getAttributeValue("ignoreBorderForSingleFrameImage"));
             PipImage.autoETC1forOpaqueImage = "true".equals(pipImageConfigElem.getAttributeValue("autoETC1forOpaqueImage"));
             MapFile.orderAnimateWhenPacking = "true".equals(pipImageConfigElem.getAttributeValue("orderAnimateWhenPacking"));
-        }
-        
-        // 20140401新增：无视J2ME可以提高服务器下载效率
-        Element ignoreJ2MEConfigElem = doc.getRootElement().getChild("ignore_j2me");
-        if (ignoreJ2MEConfigElem != null) {
-            ignoreJ2ME = "true".equals(ignoreJ2MEConfigElem.getTextTrim());
-        }
-        
-        // 20140715新增:NPC的外框是否画成圆形
-        Element npcBoxDrawRoundElem = doc.getRootElement().getChild("npcbox_drawround");
-        if (npcBoxDrawRoundElem != null) {
-            npcBoxDrawRound = "true".equals(npcBoxDrawRoundElem.getTextTrim());
         }
     }
     

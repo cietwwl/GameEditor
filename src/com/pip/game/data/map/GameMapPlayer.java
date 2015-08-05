@@ -18,11 +18,11 @@ import com.pipimage.image.PipImage;
  **/
 public class GameMapPlayer extends GameMapObject {
     /** 玩家图片 */
-    private PipImage image;
+    protected PipImage image;
     /** 是否显示 */
     public boolean show;
 
-    GameMapViewer view;
+    protected GameMapViewer view;
     /** 天空遮挡 */
     public boolean skyBlock;
 
@@ -41,7 +41,6 @@ public class GameMapPlayer extends GameMapObject {
         this.x = 300;
         this.y = 300;
     }
-
     /**
      * 绘制玩家
      */

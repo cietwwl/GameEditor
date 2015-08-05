@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Image;
@@ -29,9 +30,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import scryer.ogre.ps.ParticleSystemManager;
+
 import com.pip.game.data.DataObject;
 import com.pip.game.data.ProjectData;
+import com.pip.game.editor.ParticleEffectManager;
 import com.pip.game.editor.util.AnimatePreviewer;
+import com.pip.game.editor.util.MeshPreviewer;
+import com.pip.game.editor.util.SpritePreviewer;
 
 public class ChooseVehicleTemplateDialog extends Dialog {
 
@@ -89,6 +95,8 @@ public class ChooseVehicleTemplateDialog extends Dialog {
      */
     private List<RefreshVehicle> refreshVehicleList = new ArrayList<RefreshVehicle>();
     
+    private StackLayout stackLayout;
+    
     private 
     class ListRefeshVehicleContentProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
@@ -124,9 +132,10 @@ public class ChooseVehicleTemplateDialog extends Dialog {
     private Text text;
     private String searchCondition;
     private int selectedTemplate = -1;
-    private AnimatePreviewer previewer;
+
     
     private ListViewer orderListViewer;
+    protected SpritePreviewer previewer;
     
     public int getSelectedTemplate() {
         return selectedTemplate;
@@ -137,6 +146,11 @@ public class ChooseVehicleTemplateDialog extends Dialog {
     }
     
     
+    @Override
+    public boolean close() {
+        return super.close();
+    }
+
     public List<RefreshVehicle> getRefreshVehicle(){
         return refreshVehicleList;
     }
@@ -323,11 +337,10 @@ public class ChooseVehicleTemplateDialog extends Dialog {
        
         listViewer.setInput(ProjectData.getActiveProject());
 
-        previewer = new AnimatePreviewer(container, SWT.NONE);
+        previewer = new SpritePreviewer(container, SWT.NONE, ParticleEffectManager.getPsManager());
         previewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-        previewer.setListVisible(false);
-        previewer.setEditEnable(false);
         
+     
         if (selectedTemplate != -1) {
             try {
                 // 查找这个Vehicle在tree中的位置
@@ -413,18 +426,14 @@ public class ChooseVehicleTemplateDialog extends Dialog {
     private void updatePreviewer() {
         StructuredSelection sel = (StructuredSelection)listViewer.getSelection();
         if (sel.isEmpty()) {
-            previewer.setAnimateFile(null);
+            previewer.setSprite(null);
+            selectedTemplate = -1;
             return;
         }
         Vehicle t = (Vehicle)sel.getFirstElement();
         if(t.image != null){
-            previewer.setAnimateFile(t.image.getAnimateFile(0));
+            previewer.setSprite(t.image);
             selectedTemplate = t.id;
-            //text.setText(t.title);
-            parentContainer.layout();
-        }
-        else{
-            //TODO 把动画预览部分设置为空
         }
     }
     

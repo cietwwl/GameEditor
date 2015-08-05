@@ -4,7 +4,7 @@ import com.pip.game.data.ProjectData;
 
 public class DynamicGeneralConfig extends EffectConfig {
     
-    BuffConfig config;
+    public BuffConfig config;
     
     public DynamicGeneralConfig(BuffConfig config){
         this.config = config;

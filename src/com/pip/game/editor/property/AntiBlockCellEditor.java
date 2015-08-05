@@ -221,7 +221,7 @@ public class AntiBlockCellEditor extends CellEditor {
     }
     
     public static String getText(int[] coord) {
-        if (coord == null || coord[2] <= 0 || coord[3] <= 0) {
+        if (coord == null ) {
             return "<нч>";
         } else {
             return coord[0] + "," + coord[1] + "," + coord[2] + "," + coord[3];

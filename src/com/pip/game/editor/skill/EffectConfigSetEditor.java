@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
 
 import com.pip.game.data.ProjectData;
-import com.pip.game.data.item.ItemDefData;
 import com.pip.game.data.map.GameMapInfo;
 import com.pip.game.data.skill.BuffConfig;
 import com.pip.game.data.skill.EffectConfig;
@@ -46,10 +45,7 @@ import com.pip.game.editor.EditorPlugin;
 import com.pip.game.editor.property.BuffSetCellEditor;
 import com.pip.game.editor.property.ChangeCellEditor;
 import com.pip.game.editor.property.ChooseYesNoCellEditor;
-import com.pip.game.editor.property.ItemSetCellEditor;
 import com.pip.game.editor.property.LocationCellEditor;
-import com.pip.game.editor.property.ShapeCellEditor;
-import com.pip.game.editor.property.ShapeData;
 import com.pip.game.editor.property.SkillSetCellEditor;
 import com.pip.game.editor.property.StateCellEditor;
 import com.pip.game.editor.property.StringCellEditor;
@@ -65,7 +61,7 @@ public class EffectConfigSetEditor extends Composite {
     /*
      * 参数表编辑控制。
      */
-    class ParamListCellModifier implements ICellModifier {
+    public class ParamListCellModifier implements ICellModifier {
         public boolean canModify(Object element, String property) {
             int index = Integer.parseInt(property.substring(1));
             return index > 0;
@@ -145,11 +141,7 @@ public class EffectConfigSetEditor extends Composite {
                         modified = paramRef.autoSetParamValues(level, value);
                     } else if (cls == ChooseYesOrNo.class) {
                         modified = paramRef.autoSetParamValues(level, (String)value);
-					} else if (cls == ItemDefData[].class) {
-						modified = paramRef.autoSetParamValues(level, (String)value);
-					} else if (cls == ShapeData.class) {
-						modified = paramRef.autoSetParamValues(level, (String)value);
-					} else if(cls.newInstance() instanceof StringCell){
+                    }else if(cls.newInstance() instanceof StringCell){
                         modified = paramRef.autoSetParamValues(level, value);
                     } else {
                         modified = paramRef.setParamValue(level, value);
@@ -177,6 +169,9 @@ public class EffectConfigSetEditor extends Composite {
             } else {
                 try {
                     EffectParamRef paramRef = editObject.getParamAt(columnIndex - 1);
+                    if(paramRef == null){
+                        return "";
+                    }
                     Class cls = paramRef.getParamClass();
                     if (cls == BuffConfig.class) {
                         int id = ((Integer)paramRef.getParamValue(level)).intValue();
@@ -199,22 +194,6 @@ public class EffectConfigSetEditor extends Composite {
                         return GameMapInfo.locationToString(ProjectData.getActiveProject(), loc, false);
 //                    } else if(cls==MultiConditions.class){
 //                       return (String)paramRef.getParamValue(level);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                   } else if (cls == ItemDefData[].class){
-                        String strValue = (String)paramRef.getParamValue(level);
-                        List<ItemDefData> list = ItemDefData.parseFromString(strValue);
-                        if(list!=null){
-                            return ItemDefData.getDescString(list, true);
-                        }else{
-                            return "无效物品";
-                        }
-                    } else if (cls == ShapeData.class){
-                        String strValue = (String)paramRef.getParamValue(level);
-                        ShapeData data = ShapeData.parseShapeDataFromString(strValue);
-                        if(data!=null){
-                        	return data.toString();	
-                        }else{
-                        	return "";
-                        }
                     } else {
                         return String.valueOf(paramRef.getParamValue(level));
                     }
@@ -325,10 +304,10 @@ public class EffectConfigSetEditor extends Composite {
     }
 
     private TableViewer typeListViewer;
-    private TableViewer paramListViewer;
-    private Table paramList;
+    protected TableViewer paramListViewer;
+    protected Table paramList;
     private Table typeList;
-    private EffectConfigSet editObject = new EffectConfigSet();
+    protected EffectConfigSet editObject = new EffectConfigSet();
     private ModifyListener listener = null;
     private int[] allowedEffects = null;
     private ListViewer selectedEffectListViewer;
@@ -467,7 +446,7 @@ public class EffectConfigSetEditor extends Composite {
         this.listener = l;
     }
     
-    private void fireModified() {
+    protected void fireModified() {
         if (listener != null) {
             Event e = new Event();
             e.widget = this;
@@ -494,7 +473,7 @@ public class EffectConfigSetEditor extends Composite {
         selectedEffectListViewer.refresh();
     }
     
-    private void updateHighlight() {
+    protected void updateHighlight() {
         List<EffectParamRef> allParams = editObject.getAllParams();
         
         columnCount = allParams.size();
@@ -512,7 +491,7 @@ public class EffectConfigSetEditor extends Composite {
         }
     }
     
-    private void updateParamList() {
+    protected void updateParamList() {
         List<EffectParamRef> allParams = editObject.getAllParams();
         updateHighlight();
         
@@ -574,12 +553,6 @@ public class EffectConfigSetEditor extends Composite {
                 else if (cls == StateCellEditor.class) {
                     columnEditors[i + 1] = new StateCellEditor(paramList);
                 }
-                else if (cls == ItemDefData[].class){
-                    columnEditors[i + 1] = new ItemSetCellEditor(paramList, true);
-                }
-                else if (cls == ShapeData.class){
-                    columnEditors[i + 1] = new ShapeCellEditor(paramList);
-                }
                 else if (cls.newInstance() instanceof StringCell) {
                     StringCellEditor sce = new StringCellEditor(paramList);
                     sce.setLabels(((StringCell) cls.newInstance()).getConfig());
@@ -640,16 +613,5 @@ public class EffectConfigSetEditor extends Composite {
             return name.split("\\|")[mode];
         }
         return name;
-    }
-    
-    public void setLeftPanelShow(boolean show){
-		if (typeList.getLayoutData() instanceof GridData) {
-			((GridData) typeList.getLayoutData()).exclude = !show;
-		}
-		if (selectedEffectList.getLayoutData() instanceof GridData) {
-			((GridData) selectedEffectList.getLayoutData()).exclude = !show;
-		}
-		this.typeList.setVisible(show);
-		this.selectedEffectList.setVisible(show);
     }
 }

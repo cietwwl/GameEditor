@@ -320,7 +320,6 @@ public class ShopEditor extends DefaultDataObjectEditor {
     private Text textTitle;
     private Text textID;
     private Combo comboFaction;
-    protected Composite container;
     public static final String ID = "com.pip.game.editor.shop.ShopEditor"; //$NON-NLS-1$
 
     /**
@@ -330,7 +329,7 @@ public class ShopEditor extends DefaultDataObjectEditor {
      */
     @Override
     public void createPartControl(Composite parent) {
-        container = new Composite(parent, SWT.NONE);
+        Composite container = new Composite(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 4;
         container.setLayout(gridLayout);

@@ -209,7 +209,7 @@ public class ChooseDropGroupDialog  extends Dialog {
     }
     private TreeViewer treeViewer;
     private Tree tree;
-    protected DropNode selectedObject;
+    private DropNode selectedObject;
     private Button buttonChooseQuest;
     private int questID = -1;
     

@@ -1,8 +1,6 @@
 package com.pip.game.data.quest.pqe;
 
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.pip.game.data.ProjectData;
 
@@ -11,8 +9,6 @@ import com.pip.game.data.ProjectData;
  * @author lighthu
  */
 public class ExpressionList extends SimpleNode {
-    private static final Map<String, ExpressionList> listCache = new HashMap<String, ExpressionList>();
-    
     public ExpressionList(int id) {
         super(id);
     }
@@ -90,41 +86,14 @@ public class ExpressionList extends SimpleNode {
         System.arraycopy(children, index, newarr, index + 1, children.length - index);
         children = newarr;
     }
-    
-    public ExpressionList clone(){
-        ExpressionList ret = new ExpressionList(id);
-        ret.parent = parent;
-        ret.parser = parser;
-        ret.value = value;
-        ret.children = null;
-        
-        if(children != null){
-            ret.children = new Node[children.length];
-            
-            for(int i = 0; i < children.length; ++i){
-                ret.children[i] = children[i].clone(ret);
-            }
-        }
-        
-        return ret;
-    }
-    
+
     /**
      * 从字符串中解析出ExpressionList对象。
      */
     public static ExpressionList fromString(String str) {
         try {
-            ExpressionList cacheItem = listCache.get(str);
-            
-            if(cacheItem == null){
-                Parser t = new Parser(new StringReader(str));
-                cacheItem = t.Parse();
-                listCache.put(str, cacheItem);
-            }
-            
-            ExpressionList ret = cacheItem.clone();
-            
-            return ret;
+            Parser t = new Parser(new StringReader(str));
+            return t.Parse();
         } catch (Exception e) {
             return null;
         }

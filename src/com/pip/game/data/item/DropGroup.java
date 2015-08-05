@@ -7,7 +7,6 @@ import org.jdom.Element;
 
 import com.pip.game.data.DataObject;
 import com.pip.game.data.ProjectData;
-import com.pip.game.data.equipment.Equipment;
 import com.pip.game.data.i18n.I18NContext;
 
 /**
@@ -117,10 +116,6 @@ public class DropGroup extends DataObject{
         }
         valid = !("0".equals(elem.getAttributeValue("valid")));
 
-        loadSubDropGroup(elem);
-        
-    }
-    public void loadSubDropGroup(Element elem) {
         List<Element> list = elem.getChildren("SubGroup");
         
         subGroup.clear();
@@ -324,29 +319,6 @@ public class DropGroup extends DataObject{
         for (SubDropGroup sdg : subGroup) {
             sdg.makeFlat(this);
         }
-    }
-    
-    /**
-     * 掉落组是否绑定<br>
-     * 只要发现掉落组中掉落不绑定的物品，掉落组为不绑定<br>
-     * @return
-     */
-    public boolean isBound(){
-        List<DropItem> dropItems = getAllDropItems(null);
-        for(DropItem di : dropItems){
-            if(di.dropType == DropItem.DROP_TYPE_ITEM){
-                Item item = owner.findItem(di.dropID);
-                if(item != null && item.bind != Item.BIND_PICK_UP){
-                    return false;
-                }
-            }else if(di.dropType == DropItem.DROP_TYPE_EQUI){
-                Equipment equ = owner.findEquipment(di.dropID);
-                if(equ != null && equ.bind != Item.BIND_PICK_UP){
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     /**

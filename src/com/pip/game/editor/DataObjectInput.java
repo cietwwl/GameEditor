@@ -6,19 +6,16 @@ import org.eclipse.ui.IPersistableElement;
 
 import com.pip.game.data.DataObject;
 import com.pip.game.data.IDataCalculator;
-import com.pip.game.data.ProjectData;
 
 /**
  * 用于编辑一个数据对象的输入对象。
  * @author lighthu
  */
 public class DataObjectInput implements IEditorInput {
-    protected DataObject dataObject;
-    protected boolean useLongName;
-   
-	public DataObjectInput(DataObject m) {
-		dataObject = m;
-		useLongName = ProjectData.getActiveProject().config.useLongName;
+    protected DataObject dataObject;;
+    
+    public DataObjectInput(DataObject m) {
+        dataObject = m;
     }
     
     public Object getAdapter(Class adapter) {
@@ -34,9 +31,6 @@ public class DataObjectInput implements IEditorInput {
     }
 
     public String getName() {
-    	if(useLongName){
-    		return dataObject.toString() + "<"+ProjectData.getActiveProject().config.dataTypeNames.get(dataObject.getClass())+">";
-    	}
         return dataObject.toString();
     }
 

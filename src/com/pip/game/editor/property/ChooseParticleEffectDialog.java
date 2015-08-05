@@ -19,10 +19,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
 
+import scryer.ogre.ps.ParticleEffectPlayer;
+import scryer.ogre.ps.ParticleSystemManager;
 import com.pip.game.data.ProjectData;
 import com.pip.game.editor.ParticleEffectManager;
-import com.pip.image.workshop.editor.MultiParticleEffectViewer;
-import com.pip.mango.ps.ParticlePlayer;
+import com.pip.image.workshop.editor.PsPreviewer;
 
 /**
  * 选择项目中的粒子效果。
@@ -46,11 +47,12 @@ public class ChooseParticleEffectDialog extends Dialog {
         }
     }
     
-    private ListViewer listViewer;
-    private org.eclipse.swt.widgets.List list;
-    private String selectedTemplate = null;
-    private MultiParticleEffectViewer previewer;
-    private ParticlePlayer currentPlayer;
+    protected ListViewer listViewer;
+    protected org.eclipse.swt.widgets.List list;
+    protected String selectedTemplate = null;
+    /**粒子效果显示*/
+    protected PsPreviewer previewer;
+    protected ParticleEffectPlayer currentPlayer;
     private int selIndex; //已选择的列表索引
     
     
@@ -127,14 +129,13 @@ public class ChooseParticleEffectDialog extends Dialog {
        
         listViewer.setInput(ProjectData.getActiveProject());
 
-        previewer = new MultiParticleEffectViewer(container, SWT.NONE);
+        previewer = new PsPreviewer(container, SWT.NONE);
         previewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
         
         if (selectedTemplate != null) {
             StructuredSelection sel = new StructuredSelection(selectedTemplate);
             listViewer.setSelection(sel);
         }
-      
         return container;
     }
 
@@ -203,9 +204,9 @@ public class ChooseParticleEffectDialog extends Dialog {
         if ("<无>".equals(tname)) {
             previewer.setInput(null);
         } else {
-            currentPlayer = ParticleEffectManager.createPlayer(tname);
+            currentPlayer = new ParticleEffectPlayer(ParticleEffectManager.getPsManager(), tname, 0, 0);
             currentPlayer.setLoop(true);
-            previewer.setInput2(new ParticlePlayer[] { currentPlayer });
+            previewer.setInput(currentPlayer );
         }
     }
 }

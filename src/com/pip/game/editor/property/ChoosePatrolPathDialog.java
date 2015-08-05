@@ -1,62 +1,33 @@
 package com.pip.game.editor.property;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.locks.Condition;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
 
-import com.pip.game.data.DataObject;
+
 import com.pip.game.data.GameArea;
-import com.pip.game.data.GameAreaInfo;
-import com.pip.game.data.ProjectData;
-import com.pip.game.data.map.GameMapExit;
 import com.pip.game.data.map.GameMapInfo;
 import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
 import com.pip.game.data.map.GamePatrolPath;
-import com.pip.game.editor.EditorApplication;
-import com.pip.game.editor.EditorPlugin;
-import com.pip.game.editor.area.GameAreaEditor;
 import com.pip.game.editor.area.GameMapViewer;
-import com.pip.game.editor.quest.GameAreaCache;
-import com.pip.image.workshop.WorkshopPlugin;
 import com.pip.mango.jni.GLGraphics;
 import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.data.MapFile;
 import com.pip.mapeditor.tool.IMapEditTool;
-import com.pipimage.image.PipAnimate;
 import com.swtdesigner.SWTResourceManager;
 
 public class ChoosePatrolPathDialog extends Dialog {

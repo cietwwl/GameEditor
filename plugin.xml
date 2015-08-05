@@ -46,6 +46,13 @@
             name="游戏动画编辑器">
       </editor>
       <editor
+            class="com.pip.game.editor.GameMeshEditor"
+            contributorClass="com.pip.game.editor.DefaultDataObjectEditorActionBarContributor"
+            icon="icons/dataobj.gif"
+            id="com.pip.game.editor.GameMeshEditor"
+            name="游戏模型编辑器">
+      </editor>
+      <editor
             class="com.pip.game.editor.NPCTemplateEditor"
             contributorClass="com.pip.game.editor.DefaultDataObjectEditorActionBarContributor"
             icon="icons/dataobj.gif"

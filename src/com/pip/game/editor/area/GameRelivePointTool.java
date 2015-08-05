@@ -1,28 +1,24 @@
 package com.pip.game.editor.area;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Menu;
 
-import com.pip.game.data.Faction;
-import com.pip.game.data.NPCTemplate;
+
 import com.pip.game.data.ProjectData;
-import com.pip.game.data.map.GameMapExit;
 import com.pip.game.data.map.GameMapInfo;
-import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameRelivePoint;
-import com.pip.game.editor.EditorApplication;
-import com.pip.game.editor.EditorPlugin;
+import com.pip.mapeditor.MapEditor;
 import com.pip.mango.jni.GLGraphics;
 import com.pip.mango.jni.GLUtils;
-import com.pip.mapeditor.*;
-import com.pip.mapeditor.data.*;
+import com.pip.mapeditor.MapViewer;
+import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.tool.IMapEditTool;
-import com.pipimage.image.*;
-import com.swtdesigner.SWTResourceManager;
+import com.pipimage.image.PipImage;
 
 /**
  * 创建地图复活点工具。

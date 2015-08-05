@@ -4,7 +4,6 @@ package com.pip.game.editor;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -36,13 +35,11 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -55,50 +52,48 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import com.pip.game.data.Animation;
 import com.pip.game.data.DataObject;
 import com.pip.game.data.DataObjectCategory;
-import com.pip.game.data.ProjectData;
 import com.pip.game.data.MonsterGroup;
 import com.pip.game.data.NPCTemplate;
+import com.pip.game.data.ProjectData;
 import com.pip.game.data.item.Monster;
 import com.pip.game.data.item.SubMonsterGroup;
 import com.pip.game.editor.item.ItemTreeViewer;
 import com.pip.game.editor.property.CheckBoxCellEditor;
-import com.pip.game.editor.util.AnimatePreviewer;
 import com.pip.util.AutoSelectAll;
 import com.pip.util.Utils;
 
 public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISelectionChangedListener, SelectionListener{
 
-    private static final String[] COMBO_ITEM_TYPE = { "1.怪物", "2.怪物组" };
+    protected static final String[] COMBO_ITEM_TYPE = { "1.怪物", "2.怪物组" };
     
-    private MonsterGroup editorObj;
+    protected MonsterGroup editorObj;
     
     public static final String ID = "com.pip.game.editor.MonsterGroupEditor"; //$NON-NLS-1$
-    private Text textID;
-    private Text textTitle;
-    private TableViewer tableViewer;
-    private Table tableMonsters;
+    protected Text textID;
+    protected Text textTitle;
+    protected TableViewer tableViewer;
+    protected Table tableMonsters;
 //    private Combo comboLevel;
-    private Button canCheckout;
+    protected Button canCheckout;
     
     //候选npc怪物
-    private TreeViewer itemTreeViewer;
-    private Tree itemTree;
+    protected TreeViewer itemTreeViewer;
+    protected Tree itemTree;
     
     //战斗中的站位
     //怪物以左方为例，1,2,3,4,5表示左面第一排站位，11,12,13,14,15表示左面第二排站位
     //0表示默认值，使用的是默认站位
-    private String[] positionList = new String[]{
+    protected String[] positionList = new String[]{
        "0", 
        "1", "2", "3", "4", "5", 
        "6", "7", "8", "9", "10"
     };
-    private CCombo positionCombo;
+    protected CCombo positionCombo;
     
     //玩家个数范围列表
-    private ListViewer playerCountRangeList;   
+    protected ListViewer playerCountRangeList;   
     public ListViewer getPlayerCountRangeList() {
         return playerCountRangeList;
     }
@@ -107,7 +102,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
         this.playerCountRangeList = playerCountRangeList;
     }
 
-    private org.eclipse.swt.widgets.List levelList;
+    protected org.eclipse.swt.widgets.List levelList;
     public Text getTextCountMax() {
         return textCountMax;
     }
@@ -125,11 +120,11 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     }
 
     // 怪物玩家个数范围上限
-    private Text textCountMax;
+    protected Text textCountMax;
     // 怪物玩家个数范围下限
-    private Text textCountMin;
+    protected Text textCountMin;
     // 添加一个玩家个数范围组
-    private Button buttonAddGroup;
+    protected Button buttonAddGroup;
     public Button getButtonAddGroup() {
         return buttonAddGroup;
     }
@@ -139,7 +134,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     }
 
     // 删除一个玩家个数范围组
-    private Button buttonDelGroup;
+    protected Button buttonDelGroup;
     public Button getButtonUpdateGroup() {
         return buttonUpdateGroup;
     }
@@ -149,20 +144,20 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     }
 
     // 更新一个玩家个数范围组
-    private Button buttonUpdateGroup;
+    protected Button buttonUpdateGroup;
     
-    private Button buttonMonsterAdd;
+    protected Button buttonMonsterAdd;
 
     // 添加类型选择： 1.怪物 2.怪物组
-    private Combo comboType;
+    protected Combo comboType;
     
-    private Text textChaseDistance;
-    private Text textEyeshot;
-    private Text textSpeed;
-    private Text textWalkSpeed;
-    private Text textBattleDistance;
+    protected Text textChaseDistance;
+    protected Text textEyeshot;
+    protected Text textSpeed;
+    protected Text textWalkSpeed;
+    protected Text textBattleDistance;
     
-    private class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
+    public class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
@@ -200,7 +195,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
         }
     }
 
-    private class ContentProvider implements IStructuredContentProvider {
+    public class ContentProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
             if(inputElement instanceof SubMonsterGroup) {
                 SubMonsterGroup subMonsterGroup = (SubMonsterGroup)inputElement;
@@ -231,7 +226,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
         }
     }
     
-    class MyCellModifier implements ICellModifier{  
+    public class MyCellModifier implements ICellModifier{  
         private TableViewer tv;
         private Table table;
          
@@ -336,7 +331,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
          
     }  
     
-    class ItemTreeLabelProvider extends LabelProvider {
+    public class ItemTreeLabelProvider extends LabelProvider {
         public String getText(Object element) {
             return super.getText(element);
         }
@@ -351,7 +346,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
         }
     }
 
-    class ItemTreeContentProvider implements IStructuredContentProvider, ITreeContentProvider {
+    public class ItemTreeContentProvider implements IStructuredContentProvider, ITreeContentProvider {
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
         }
 
@@ -726,7 +721,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
         tableViewer.refresh();
     }
     
-    private void init() {
+    protected void init() {
         MonsterGroup obj = (MonsterGroup) editObject;
         textID.setText(String.valueOf(obj.id));
         textID.setEditable(false);
@@ -891,7 +886,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     /**
      * 执行添加玩家个数范围消息处理
      */
-    private void onAddGroup() {
+    protected void onAddGroup() {
         int countMin = Integer.parseInt(textCountMin.getText());
         int countMax = Integer.parseInt(textCountMax.getText());
 
@@ -938,7 +933,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     /**
      * 删除玩家个数范围消息处理
      */
-    private void onDeleteGroup() {
+    protected void onDeleteGroup() {
         IStructuredSelection selected = (IStructuredSelection) playerCountRangeList.getSelection();
         SubMonsterGroup subGroup = (SubMonsterGroup) selected.getFirstElement();
         int oldSelIndex = levelList.getSelectionIndex();
@@ -962,7 +957,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     /**
      * 更新玩家个数范围消息处理
      */
-    private void onUpdateGroup() {
+    protected void onUpdateGroup() {
         IStructuredSelection selected = (IStructuredSelection) playerCountRangeList.getSelection();
         int index = playerCountRangeList.getList().getSelectionIndex();
         SubMonsterGroup subGroup = (SubMonsterGroup) selected.getFirstElement();
@@ -1002,7 +997,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     /**
      * 添加一个怪物组
      */
-    private void onAddItem() {
+    protected void onAddItem() {
         // 查找选中的子怪物组
         IStructuredSelection selSubGroup = (IStructuredSelection) playerCountRangeList.getSelection();
         SubMonsterGroup selection = (SubMonsterGroup) selSubGroup.getFirstElement();
@@ -1075,7 +1070,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
     /**
      * 玩家个数范围列表数据内容提供类
      */
-    class ListContentProvider implements IStructuredContentProvider {
+    public class ListContentProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
             if (inputElement instanceof MonsterGroup) {
                 MonsterGroup inputData = (MonsterGroup) inputElement;
@@ -1112,7 +1107,7 @@ public class MonsterGroupEditor extends DefaultDataObjectEditor implements ISele
      * 
      * @param subDrop
      */
-    private void setSubMonsterGroup(SubMonsterGroup subMonsterGroup) {
+    protected void setSubMonsterGroup(SubMonsterGroup subMonsterGroup) {
         if(subMonsterGroup != null) {
             textCountMax.setText(String.valueOf(subMonsterGroup.countMax));
             textCountMin.setText(String.valueOf(subMonsterGroup.countMin));

@@ -3,7 +3,6 @@ package com.pip.game.data.item;
 import org.jdom.Element;
 
 import com.pip.game.data.DataObject;
-import com.pip.game.data.extprop.ExtPropEntries;
 import com.pip.game.data.i18n.I18NContext;
 
 public class DropNode extends DataObject{
@@ -57,10 +56,6 @@ public class DropNode extends DataObject{
      */
     public boolean copy;
     
-    /**
-     * À©Õ¹ÊôÐÔ¡£
-     */
-    public ExtPropEntries extPropEntries = new ExtPropEntries();
     
     public DropNode(int type){
         this.type = type;
@@ -94,7 +89,6 @@ public class DropNode extends DataObject{
         dropRate = Integer.parseInt(elem.getAttributeValue("dropRate"));
         taskId = Integer.parseInt(elem.getAttributeValue("taskId"));
         copy = "1".equals(elem.getAttributeValue("copy"));
-        extPropEntries.loadExtData(elem.getChild("extProps"));
     }
 
     public Element save() {
@@ -107,11 +101,6 @@ public class DropNode extends DataObject{
         ret.addAttribute("dropRate",String.valueOf(dropRate));
         ret.addAttribute("taskId",String.valueOf(taskId));
         ret.addAttribute("copy", copy ? "1" : "0");
-        if(extPropEntries.editProps.size()>0){
-        	Element el = new Element("extProps");
-        	extPropEntries.saveToDom(el);
-        	ret.addContent(el);
-        }
         return ret;
     }
 
@@ -125,7 +114,6 @@ public class DropNode extends DataObject{
         dropRate = node.dropRate;
         taskId = node.taskId;
         copy = node.copy;
-        extPropEntries.copyFrom(node.extPropEntries);
     }
     
     /**

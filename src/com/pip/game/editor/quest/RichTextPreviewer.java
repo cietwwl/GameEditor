@@ -165,18 +165,13 @@ public class RichTextPreviewer extends Composite implements PaintListener {
                     buf.setLength(0);
                     if (!tagName.startsWith("/")) {
                         // 处理起始标记
-                        if (tagName.startsWith("c")) {
-                            tagStack.add("c");
+                        if (tagName.startsWith("font")) {
+                            tagStack.add("font");
                             colorStack.add(color);
-                            color = Integer.parseInt(tagName.substring(1), 16);
-                        } else if (tagName.startsWith("i")) {
-                            tagStack.add(tagName);
-                            colorStack.add(color);
-                            color = 0x00FF00;
-                        } else if (tagName.startsWith("m")) {
-                            tagStack.add(tagName);
-                            colorStack.add(color);
-                            color = 0xFFFF00;
+                            int i1 = tagName.indexOf("color=\"");
+                            i1 += "color=\"".length();
+                            int i2 = tagName.indexOf('"', i1);
+                            color = Integer.parseInt(tagName.substring(i1, i2), 16);
                         } else if (tagName.startsWith("n")) {
                             tagStack.add(tagName);
                             colorStack.add(color);

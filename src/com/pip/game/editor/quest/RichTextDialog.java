@@ -1,7 +1,5 @@
 package com.pip.game.editor.quest;
 
-import java.lang.reflect.Constructor;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.text.TextViewer;
@@ -32,8 +30,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.pip.game.data.DataObject;
-import com.pip.game.data.ProjectConfig;
-import com.pip.game.data.ProjectData;
 import com.pip.game.data.quest.QuestInfo;
 import com.pip.game.data.quest.pqe.ExpressionList;
 import com.pip.game.editor.EditorPlugin;
@@ -74,19 +70,7 @@ public class RichTextDialog extends Dialog {
         final GridLayout gridLayout = new GridLayout();
         container.setLayout(gridLayout);
 
-        ProjectConfig config = ProjectData.getActiveProject().config;
-        if(config.richTextEditorClass!=null && config.richTextEditorClass.trim().length()>0){
-        	 try {
-                 String className = config.richTextEditorClass.trim();
-                 Class clzz = config.getProjectClassLoader().loadClass(className);
-                 Constructor constructor = clzz.getConstructor(Composite.class, QuestInfo.class);
-                 editor = (RichTextEditor) constructor.newInstance(container, questInfo);
-             }catch (Exception e) {
-                 e.printStackTrace();
-             }
-        }else{
-        	editor = new RichTextEditor(container, questInfo);
-        }
+        editor = new RichTextEditor(container, questInfo);
         editor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
         editor.setText(text);

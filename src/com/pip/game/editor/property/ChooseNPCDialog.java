@@ -1,7 +1,5 @@
 package com.pip.game.editor.property;
 
-import java.io.File;
-import java.sql.NClob;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,30 +36,24 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+
 import com.pip.game.data.DataObject;
 import com.pip.game.data.GameArea;
 import com.pip.game.data.GameAreaInfo;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.ProjectData;
-import com.pip.game.data.forbid.ForbidItem;
-import com.pip.game.data.map.GameMapExit;
 import com.pip.game.data.map.GameMapInfo;
 import com.pip.game.data.map.GameMapNPC;
 import com.pip.game.data.map.GameMapObject;
-import com.pip.game.editor.EditorApplication;
 import com.pip.game.editor.EditorPlugin;
 import com.pip.game.editor.area.GameMapViewer;
-import com.pip.game.editor.property.ChooseLocationDialog.PickupLocationTool;
-import com.pip.game.editor.property.CollectItemDialog.ListContentProvider;
-import com.pip.game.editor.property.CollectItemDialog.ListLabelProvider;
 import com.pip.game.editor.quest.GameAreaCache;
 import com.pip.image.workshop.WorkshopPlugin;
 import com.pip.mango.jni.GLGraphics;
 import com.pip.mapeditor.MapEditor;
-import com.pip.mapeditor.MapViewer;
 import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.data.MapFile;
 import com.pip.mapeditor.tool.IMapEditTool;
-import com.pipimage.image.PipAnimateSet;
 import com.swtdesigner.SWTResourceManager;
 
 public class ChooseNPCDialog extends Dialog {
@@ -487,7 +479,6 @@ public class ChooseNPCDialog extends Dialog {
                 if (mapFile == null) {
                     mapFile = new MapFile();
                     mapFile.load(mapInfo.owner.getFile(0));
-                    mapCache.put(mapInfo.owner,mapFile);
                 }
                 mapViewer.setInput(mapFile.getMaps().get(mapInfo.id), mapInfo, mapInfo.owner.owner.config.mapFormats.get(0));
                 mapViewer.setTool(new PickupNPCTool());
@@ -500,7 +491,6 @@ public class ChooseNPCDialog extends Dialog {
                 if (mapFile == null) {
                     mapFile = new MapFile();
                     mapFile.load(mapInfo.owner.getFile(0));
-                    mapCache.put(mapInfo.owner,mapFile);
                 }
                 mapViewer.setInput(mapFile.getMaps().get(mapInfo.id), mapInfo, mapInfo.owner.owner.config.mapFormats.get(0));
                 mapViewer.setTool(new PickupNPCTool());
@@ -560,8 +550,7 @@ public class ChooseNPCDialog extends Dialog {
             if(mapViewer.getCachedNPCImage(npc)==null){
                 return new Rectangle(npc.x,npc.y, 0,0);
             }
-            PipAnimateSet animateSet = mapViewer.getCachedNPCImage(npc);
-            Rectangle bounds = animateSet.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(animateSet)).getBounds();
+            Rectangle bounds = mapViewer.getCachedNPCImage(npc).getBounds(0, ((GameMesh)npc.template.image).getMeshConfig().getScalar());
             bounds.x += npc.x;
             bounds.y += npc.y;
             return bounds;
@@ -644,7 +633,6 @@ public class ChooseNPCDialog extends Dialog {
         this.mapFile = null;
         this.mapInfo = null;
         MapEditor.imageCache.clear();
-        mapCache.clear();
         System.gc();
         return super.close();
     }

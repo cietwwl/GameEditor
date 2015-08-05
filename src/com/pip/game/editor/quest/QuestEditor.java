@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -76,6 +77,7 @@ import com.pip.util.AutoSelectAll;
 import com.pip.util.Utils;
 
 public class QuestEditor extends DefaultDataObjectEditor {
+    protected ScrolledComposite scrollContainer;
 	protected Text textUnfinDesc;
 	protected Table table;
 	/**
@@ -313,11 +315,6 @@ public class QuestEditor extends DefaultDataObjectEditor {
     protected Button autoShareButton;
     protected Button buttonValid;
     
-    protected Button buttonEditText1;
-    protected Button buttonEditText2;
-    protected Button buttonEditText3;
-    protected Button buttonEditText4;
-    
     public Button getAutoShareButton() {
         return autoShareButton;
     }
@@ -335,11 +332,14 @@ public class QuestEditor extends DefaultDataObjectEditor {
     public void createPartControl(Composite parent) {
         createActions();
         
+        
         Composite container = new Composite(parent, SWT.NONE);
         container.setLayout(new FillLayout());
+        
 
         final CTabFolder tabFolder = new CTabFolder(container, SWT.BOTTOM);
 
+        
         final CTabItem tabItem = new CTabItem(tabFolder, SWT.NONE);
         tabItem.setText("基本信息");
 
@@ -350,7 +350,8 @@ public class QuestEditor extends DefaultDataObjectEditor {
         tabItem_2.setText("掉落设定");
         
         tabFolder.setSelection(tabItem);
-
+        
+        // 设计
         final Composite composite_1 = new Composite(tabFolder, SWT.NONE);
         final GridLayout gridLayout_2 = new GridLayout();
         composite_1.setLayout(gridLayout_2);
@@ -364,21 +365,31 @@ public class QuestEditor extends DefaultDataObjectEditor {
             }
         });
 
-        final Composite composite = new Composite(tabFolder, SWT.NONE);
+        
+        Composite containerTab1 = new Composite(tabFolder, SWT.NONE);
+        containerTab1.setLayout(new FillLayout());
+        tabItem.setControl(containerTab1);
+ 
+        scrollContainer = new ScrolledComposite(containerTab1, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+        scrollContainer.setExpandHorizontal(true);
+        scrollContainer.setExpandVertical(true);
+        final Composite composite = new Composite(scrollContainer, SWT.NONE);
         final GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 6;
         composite.setLayout(gridLayout);
-        tabItem.setControl(composite);
+        
+        scrollContainer.setContent(composite);
+        scrollContainer.setMinSize(400, 1000);
 
         final Label idLabel = new Label(composite, SWT.NONE);
         idLabel.setText("ID：");
 
-        textID = new Text(composite, SWT.BORDER);
-        final GridData gd_textID = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+        textID = new Text(composite, SWT.READ_ONLY);
+        final GridData gd_textID = new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1);
         textID.setLayoutData(gd_textID);
         textID.addFocusListener(AutoSelectAll.instance);
         textID.addModifyListener(this);
-
+        
         final Label label_2 = new Label(composite, SWT.NONE);
         label_2.setLayoutData(new GridData());
         label_2.setText("类型：");
@@ -439,7 +450,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         textPreDesc.setLayoutData(gd_textPreDesc);
         textPreDesc.addModifyListener(this);
 
-        buttonEditText1 = new Button(composite, SWT.NONE);
+        final Button buttonEditText1 = new Button(composite, SWT.NONE);
         buttonEditText1.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
                 RichTextDialog dlg = new RichTextDialog(getSite().getShell(), questInfo);
@@ -463,7 +474,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         textDescription.setLayoutData(gd_textDescription);
         textDescription.addModifyListener(this);
 
-        buttonEditText2 = new Button(composite, SWT.NONE);
+        final Button buttonEditText2 = new Button(composite, SWT.NONE);
         buttonEditText2.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
                 RichTextDialog dlg = new RichTextDialog(getSite().getShell(), questInfo);
@@ -485,7 +496,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         textPostDesc.setLayoutData(gd_textPostDesc);
         textPostDesc.addModifyListener(this);
 
-        buttonEditText3 = new Button(composite, SWT.NONE);
+        final Button buttonEditText3 = new Button(composite, SWT.NONE);
         buttonEditText3.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
                 RichTextDialog dlg = new RichTextDialog(getSite().getShell(), questInfo);
@@ -495,8 +506,6 @@ public class QuestEditor extends DefaultDataObjectEditor {
                 }
             }
         });
-        final GridData gd_buttonEditText3 = new GridData();
-        buttonEditText3.setLayoutData(gd_buttonEditText3);
         buttonEditText3.setText("...");
 
         final Label label_15 = new Label(composite, SWT.NONE);
@@ -509,7 +518,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         textUnfinDesc.setLayoutData(gd_textUnfinDesc);
         textUnfinDesc.addModifyListener(this);
 
-        buttonEditText4 = new Button(composite, SWT.NONE);
+        final Button buttonEditText4 = new Button(composite, SWT.NONE);
         buttonEditText4.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
                 RichTextDialog dlg = new RichTextDialog(getSite().getShell(), questInfo);
@@ -519,8 +528,6 @@ public class QuestEditor extends DefaultDataObjectEditor {
                 }
             }
         });
-        final GridData gd_buttonEditText4 = new GridData();
-        buttonEditText4.setLayoutData(gd_buttonEditText4);
         buttonEditText4.setText("...");
 
         final Label label_4 = new Label(composite, SWT.NONE);
@@ -619,6 +626,9 @@ public class QuestEditor extends DefaultDataObjectEditor {
         final GridData gd_buttonValid = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1);
         buttonValid.setLayoutData(gd_buttonValid);
         buttonValid.setText("是否生效");
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
 
         final Label label_9 = new Label(composite, SWT.NONE);
         label_9.setText("任务目标：");
@@ -644,7 +654,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         targetTable = targetTableViewer.getTable();
         targetTable.setLinesVisible(true);
         targetTable.setHeaderVisible(true);
-        final GridData gd_targetTable = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
+        final GridData gd_targetTable = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 3);
         targetTable.setLayoutData(gd_targetTable);
 		targetTable.addListener(SWT.KeyDown, new Listener() {
             public void handleEvent(Event event) {
@@ -705,6 +715,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
         autoShareButton.setLayoutData(gd_autoShareButton);
         autoShareButton.setText("接受任务时自动共享给周围队友");
         
+        // 掉落设定
         Composite dropComposite = new Composite(tabFolder, SWT.NONE);
         final GridLayout gridLayout_1 = new GridLayout();
         gridLayout_1.numColumns = 2;
@@ -944,7 +955,7 @@ public class QuestEditor extends DefaultDataObjectEditor {
      * @param source
      *      增加动作源对象
      */
-    protected void onAdd(Object source){
+    private void onAdd(Object source){
         if(source == addDropNode){
             StructuredSelection npcSelected = (StructuredSelection)npcList.getSelection();
             if(npcSelected.isEmpty()){

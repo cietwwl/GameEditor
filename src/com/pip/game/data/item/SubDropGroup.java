@@ -273,10 +273,4 @@ public class SubDropGroup extends DataObject{
     public boolean i18n(I18NContext context) {
         return false;
     }
-    
-    /**
-     * 更新锁定的IDs
-     */
-    public void updateLockIDs(Set<Integer> lockIDs){    	
-    }
 }

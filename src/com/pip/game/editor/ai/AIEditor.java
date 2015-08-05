@@ -47,10 +47,10 @@ import com.pip.util.AutoSelectAll;
 public class AIEditor extends DefaultDataObjectEditor{
     public static final String ID = "com.pip.game.editor.ai.AIEditor"; 
     
-    private AIData aiData;
-    private AIRule rule;
+    public AIData aiData;
+    public AIRule rule;
     
-    class RuleListCellModifier implements ICellModifier {
+    public class RuleListCellModifier implements ICellModifier {
         public boolean canModify(Object element, String property) {
             return false;
         }
@@ -129,7 +129,7 @@ public class AIEditor extends DefaultDataObjectEditor{
     }
 
     // *******************
-    class RuleListLabelProvider extends LabelProvider implements ITableLabelProvider {
+    public class RuleListLabelProvider extends LabelProvider implements ITableLabelProvider {
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof String) {
                 return "ÐÂ½¨½×¶Î...";
@@ -146,23 +146,23 @@ public class AIEditor extends DefaultDataObjectEditor{
         }
     }
 
-    private Table ruleList;
-    private TableViewer ruleListViewer;
-    private PropertySheetViewer propertyEditor;
+    public Table ruleList;
+    public TableViewer ruleListViewer;
+    public PropertySheetViewer propertyEditor;
     // ******************
     public Button creatureType;
     public Button mapType;
     
     public Button combatStatus;
     public Button commonStatus;
-    private PropertySheetViewer insertPointEditor;
-    private RuleListCombatContentProvider combatContentProvider = new RuleListCombatContentProvider();
-    private RuleListCommonContentProvider commonContentProvider = new RuleListCommonContentProvider();
+    public PropertySheetViewer insertPointEditor;
+    public RuleListCombatContentProvider combatContentProvider = new RuleListCombatContentProvider();
+    public RuleListCommonContentProvider commonContentProvider = new RuleListCommonContentProvider();
     
-    private Text textAI;
-    private Text textID;
-    private Text textTitle;
-    private Text textDescription;
+    public Text textAI;
+    public Text textID;
+    public Text textTitle;
+    public Text textDescription;
     
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -472,7 +472,7 @@ public class AIEditor extends DefaultDataObjectEditor{
         this.setDirty(false);
     }
     
-    private int getContextMask() {
+    protected int getContextMask() {
         if (aiData.type == AIData.CREATURE_AI) {
             return TemplateManager.CONTEXT_SET_CREATURE_AI;
         } else {
@@ -480,7 +480,7 @@ public class AIEditor extends DefaultDataObjectEditor{
         }
     }
     
-    private void setupInsertPointEditor() {
+    public void setupInsertPointEditor() {
         if (aiData.type == AIData.CREATURE_AI) {
             insertPointEditor.setInput(new Object[] { new AIRuleInsertPointConfigPropertySource(AIEditor.this, rule.insertPoints,
                     insertPointEditor, getContextMask()) });
@@ -490,7 +490,7 @@ public class AIEditor extends DefaultDataObjectEditor{
         }
     }
     
-    private void setupStageEditor() {
+    public void setupStageEditor() {
         propertyEditor.setInput(new Object[0]);
         if (commonStatus.getSelection()) {
             int sel = ruleList.getSelectionIndex();
@@ -507,7 +507,7 @@ public class AIEditor extends DefaultDataObjectEditor{
         }
     }
     
-    private void updateView() {
+    protected void updateView() {
         AIData dataDef = (AIData)editObject;
         textAI.setText(dataDef.aiRule.getAIRuleDesc());
     }

@@ -11,13 +11,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import org.eclipse.swt.graphics.Rectangle;
-
 import com.pip.mapeditor.data.AccurateMapLayer;
 import com.pip.mapeditor.data.BlurMapLayer;
 import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.data.IMapLayer;
-import com.pip.mapeditor.data.MapFile;
 import com.pip.mapeditor.data.MapNPC;
 import com.pip.mapeditor.data.MapNPCLayer;
 import com.pip.mapeditor.data.NPCImageInfo;
@@ -83,6 +80,23 @@ public class PathFinder {
     // 缓存地图可通达信息。记录每个4x4的格子是否能从任意出口到达。
     protected byte[][] reachable3;
     
+    //A*算法路径缓存
+    protected int pathLen[][];
+    
+    protected int openNodes[];
+    
+    protected int maxOpenNodes;
+    
+    protected static  byte PATH_FIND[][] = {
+            { -1, 0, 2 },
+            { 1, 0, 2 },
+            { 0, -1, 2 },
+            { 0, 1, 2 },
+            { -1, -1, 3 },
+            { 1, -1, 3 },
+            { -1, 1, 3 }, 
+            { 1, 1, 3 }
+        };
     // 每个格点的替代格点，按角度差的大小排序
     protected static int[][] REPLACEMENT_SEQUENCE;
     static {
@@ -241,6 +255,9 @@ public class PathFinder {
         }
         buildReachable2();
         buildReachable3();
+        maxOpenNodes = (gridWidth + gridHeight) << 4;
+        openNodes = new int[maxOpenNodes];
+        pathLen = new int[gridWidth][gridHeight];
     }
     
     /**
@@ -291,6 +308,9 @@ public class PathFinder {
         }
         buildReachable2();
         buildReachable3();
+        maxOpenNodes = (gridWidth + gridHeight) << 4;
+        openNodes = new int[maxOpenNodes];
+        pathLen = new int[gridWidth][gridHeight];
     }
     
     /*
@@ -812,7 +832,9 @@ public class PathFinder {
         if (bitIndex != 7) {
             passable2[index] = (byte)tmp;
         }
-        
+        maxOpenNodes = (gridWidth + gridHeight) << 4;
+        openNodes = new int[maxOpenNodes];
+        pathLen = new int[gridWidth][gridHeight];
         return ret;
     }
     
@@ -918,6 +940,269 @@ public class PathFinder {
         return (passable2[index] & (1 << bitIndex)) != 0;
     }
     
+    /**
+     * a*寻路
+     * @param startX
+     * @param startY
+     * @param endX
+     * @param endY
+     * @param mask
+     * @return
+     */
+    public int[][] searchPathAStar(int startX, int startY, int endX, int endY ,int mask ){
+        int fxg = startX >> GRID_BITS;
+        int fyg = startY >> GRID_BITS;
+        int txg = endX >> GRID_BITS;
+        int tyg = endY >> GRID_BITS;
+        if (fxg < 0 || fxg >= gridWidth || fyg < 0 || fyg >= gridHeight) {
+            return null;
+        }
+         
+        // 如果起始点和终止点相等，不用寻路
+        if (fxg == txg && fyg == tyg)
+        {
+            return null;
+        }
+
+        // 如果目标点不可通过，不能寻路
+        if ((passable[tyg][txg]  & mask) == 0)
+        {
+            return null;
+        }
+        // 初始化A*算法路径长度缓存
+        for (int k = 0; k < gridWidth; k++)
+        {
+            Arrays.fill(pathLen[k], 0);
+        }
+            int openNodeStart = 0;
+            int openNodeEnd = 1;
+            pathLen[fxg][fyg] = 1;
+            openNodes[0] = (int)((fxg << 16) | fyg);
+            boolean found = false;
+            while (openNodeStart != openNodeEnd) 
+            {
+                int thisX = (openNodes[openNodeStart] >> 16) & 0xFFFF;
+                int thisY = openNodes[openNodeStart] & 0xFFFF;
+                int thisLen = pathLen[thisX][thisY];
+                openNodeStart++;
+                if (openNodeStart >= maxOpenNodes) {
+                    openNodeStart = 0;
+                }
+                if (thisX == txg && thisY == tyg) 
+                {
+                    found = true;
+                    break;
+                }
+                /*if ((thisX - endX) * (thisX - endX) + (thisY - endY) * (thisY - endY) <= 6400) {
+                    endX = thisX;
+                    endY = thisY; 
+                    found = true;
+                    break;
+                }*/
+                for (int i = 0; i < 8; i++) 
+                {
+                    int checkX = thisX + PATH_FIND[i][0];
+                    int checkY = thisY + PATH_FIND[i][1];
+                    int step = PATH_FIND[i][2];
+                    if (checkX < 0 || checkX >= gridWidth || checkY < 0 || checkY >= gridHeight) 
+                    {
+                        continue;
+                    }
+                    int t = 0;
+                    try{
+                        
+                         t = pathLen[checkX][checkY];
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                    if (t == 0 || t > thisLen + step) 
+                    {
+                        // 没有走过，或者从更差的路径走过，都重新open
+                        if (t == 0 && ((passable[checkY][checkX]  & mask) == 0)) 
+                        {
+                            // 不可通过，设为-1
+                            pathLen[checkX][checkY] = -1;
+                        } 
+                        else 
+                        {
+                            // 设置新路径长度数值，并加入open表
+                            pathLen[checkX][checkY] = (short)(thisLen + step);
+                            if ((checkY - thisY) * (endY - thisY) >= 0 &&
+                                    (checkX - thisX) * (endX - thisX) >= 0) 
+                            {
+                                openNodeStart--;
+                                if (openNodeStart < 0) 
+                                {
+                                    openNodeStart = maxOpenNodes - 1;
+                                }
+                                openNodes[openNodeStart] = (int)((checkX << 16) | checkY);
+                            } 
+                            else 
+                            {
+                                openNodes[openNodeEnd] = (int)((checkX << 16) | checkY);
+                                openNodeEnd++;
+                                if (openNodeEnd >= maxOpenNodes) 
+                                {
+                                    openNodeEnd = 0;
+                                }
+                                if (openNodeEnd == openNodeStart)
+                                {
+                                    //头尾碰到了，需要扩展openNode数组
+                                    int newLen = maxOpenNodes * 3 / 2;
+                                    int[] newarray = new int[newLen];
+                                    System.arraycopy(openNodes, 0, newarray, 0, openNodeEnd);
+                                    int remainCount = maxOpenNodes - openNodeStart;
+                                    System.arraycopy(openNodes, openNodeStart, newarray, newLen - remainCount, remainCount);
+                                    openNodeStart = newLen - remainCount;
+                                    openNodes = newarray;
+                                    maxOpenNodes = newLen;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (found) 
+            {
+                // 找到路径以后，从结束点往回扫描，找出从结束点到起始点之间的最短路径，存入一个数组
+                int[][] newpath;
+                int stepLen = pathLen[txg][tyg];
+                int[][] ret = new int[stepLen][];
+                for (int j = 0; j < stepLen; j++)
+                {
+                    ret[j] = new int[2];
+                }
+                int retp = stepLen - 1;
+                while (txg != fxg || tyg != fyg) 
+                {
+                    if (retp < 0) 
+                    {
+                        break;
+                    }
+                    ret[retp][0] = txg ;
+                    ret[retp][1] = tyg ;
+                    retp--;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        int checkX = txg + PATH_FIND[i][0];
+                        int checkY = tyg + PATH_FIND[i][1];
+                        int step = PATH_FIND[i][2];
+                        if (checkX < 0 || checkX >= gridHeight || checkY < 0 || checkY >= gridWidth) 
+                        {
+                            continue;
+                        }
+                        if (pathLen[checkX][checkY]  == stepLen - step) 
+                        {
+                            txg = checkX;
+                            tyg = checkY;
+                            stepLen -= step;
+                            break;
+                        }
+                    }
+                }
+                int[][] ret2 = new int[ret.length -retp - 1][2];
+                for(int i = 0 ; i < ret2.length; i ++){
+                    System.arraycopy(ret[retp + 1 + i], 0, ret2[i], 0, ret2[i].length);
+                }
+                // 优化路径
+                newpath = optimizePath(ret2, mask);
+                return newpath;
+            }
+            else 
+            {
+                return null;
+            }
+    }
+    // 优化路径，去掉直线上的中间点
+    int[][] optimizePath(int[][] path, int mask)
+    {
+        List<Object> optPath = null;
+        int oldDx, oldDy, i, j;
+        int newPath[][] = null;
+        if (path == null)
+        {
+            return null;
+        }
+
+        optPath = new ArrayList<Object>();
+        oldDx = oldDy = i = j = 0;
+
+        // 缩减同一直线上的路点，只留两个端点
+        for (i = 0; i < path.length - 1; i++)
+        {
+            int dx, dy;
+            
+            dx = path[i][0] - path[i + 1][0];
+            dy = path[i][1] - path[i + 1][1];
+            if(dx != oldDx || dy != oldDy){
+                oldDx = dy;
+                oldDy = dy;
+                optPath.add(path[i]);
+            }
+        }
+
+        optPath.add(path[path.length- 1]);
+
+        // 遍历路径中的路点，如果两点间的斜线路径上没有障碍则拿掉中间的直角拐点
+        for (i = 0; i < optPath.size() - 2; ++i)
+        {
+            for (j = i + 2; j < optPath.size(); ++j)
+            {
+                int[] p1, p2;
+                
+                p1 = (int[]) optPath.get(i);
+                p2 = (int[]) optPath.get(j);
+                if (availablePath(p1[0], p1[1], p2[0], p2[1], mask))
+                {
+                    optPath.remove(i + 1);
+                    --j;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        // 输出新路径
+        newPath = new int[optPath.size()][];
+        for (i = 0; i < optPath.size(); i++)
+        {
+            int[] tempArr;
+            
+            tempArr = (int[]) optPath.get(i);
+            newPath[i] = new int[tempArr.length];
+            System.arraycopy(tempArr, 0, newPath[i], 0, newPath[i].length);
+        }
+        return newPath; 
+    }
+    
+ // 检查两点之间是否可直接通过。
+   public boolean availablePath(int x1, int y1, int x2, int y2, int mask)
+    {
+        // 两点式直线方程
+        // y = (y2 - y1) * (x - x1) / (x2 - x1) + y1
+        int minX, maxX, x, y, dy, dx;
+        
+        minX = Math.min(x1, x2);
+        maxX = Math.max(x1, x2);
+        dy = y2 - y1;
+        dx = x2 - x1;
+
+        for (x = minX; x < maxX; x++)
+        {
+            int atemp = 0;
+            
+            y = dy * (x - x1) / dx + y1;
+            atemp = passable[y][x];
+            if ((atemp & mask) == 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
     /**
      * 查找路径。
      * @param fromx 起始点x坐标（像素）

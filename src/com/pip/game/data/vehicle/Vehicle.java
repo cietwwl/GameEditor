@@ -1,15 +1,15 @@
 package com.pip.game.data.vehicle;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.swt.widgets.Text;
 import org.jdom.Element;
 
 import com.pip.game.data.Animation;
 import com.pip.game.data.DataObject;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.ProjectData;
+import com.pip.game.data.Sprite;
 import com.pip.game.data.i18n.I18NContext;
 import com.pip.game.data.skill.SkillConfig;
 
@@ -101,7 +101,7 @@ public class Vehicle extends DataObject {
     public String description = "";
     public int level;
     public int type;
-    public Animation image;
+    public Sprite image;
     /**
      * ¿©’π Ù–‘
      */
@@ -219,9 +219,17 @@ public class Vehicle extends DataObject {
         }
         type = Integer.parseInt(elem.getAttributeValue("type"));
         level = Integer.parseInt(elem.getAttributeValue("level"));
-        image = (Animation) owner.findObject(Animation.class, Integer
-                .parseInt(elem.getAttributeValue("image")));
+//        image = (Animation) owner.findObject(Animation.class, Integer
+//                .parseInt(elem.getAttributeValue("image")));
 
+        int imageId = Integer.parseInt(elem.getAttributeValue("image"));
+        if(imageId < 0){
+        }else if(imageId > 0 && imageId <= 100000){
+            image = (Animation)owner.findObject(Animation.class, imageId);
+        }else{
+            image = (GameMesh)owner.findObject(GameMesh.class, imageId - 100000);
+        }
+        
         Element extprop = elem.getChild("extprop");
         hp = Integer.parseInt(extprop.getAttributeValue("HP"));
         mp = Integer.parseInt(extprop.getAttributeValue("MP"));
@@ -298,12 +306,12 @@ public class Vehicle extends DataObject {
         }
         ret.addAttribute("type", String.valueOf(type));
         ret.addAttribute("level", String.valueOf(level));
-        if (image == null) {
+        if(image != null){
+            ret.addAttribute("image", String.valueOf(image.id % 100000));
+        }else{
             ret.addAttribute("image", "-1");
-        } else {
-            ret.addAttribute("image", String.valueOf(image.id));
         }
-
+       
         Element extprop = new Element("extprop");
         ret.addContent(extprop);
         extprop.addAttribute("HP", String.valueOf(hp));
@@ -487,4 +495,5 @@ public class Vehicle extends DataObject {
         }
         return changed;
     }
+    
 }

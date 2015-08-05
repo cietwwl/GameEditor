@@ -53,10 +53,10 @@ public class TitleEditor extends DefaultDataObjectEditor {
         }
     }
 
-    protected Combo comboFactionCtrl;
+    private Combo comboFactionCtrl;
     private Combo comboBuffCtrl;
     private Combo comboType;
-    protected ComboViewer comboFaction;
+    private ComboViewer comboFaction;
     private Text textSalary;
     private Text textPrice;
     private Combo comboLevel;
@@ -66,7 +66,6 @@ public class TitleEditor extends DefaultDataObjectEditor {
     
     public static final String ID = "com.pip.sanguo.editor.TitleEditor"; //$NON-NLS-1$
     private ComboViewer comboBuff;
-    protected Label lblFaction;
 
     /**
      * Create contents of the editor part
@@ -134,9 +133,9 @@ public class TitleEditor extends DefaultDataObjectEditor {
         comboLevel.setItems(items);
         comboLevel.addModifyListener(this);
 
-        lblFaction = new Label(container, SWT.NONE);
-        lblFaction.setLayoutData(new GridData());
-        lblFaction.setText("ÕóÓª£º");
+        final Label label_4 = new Label(container, SWT.NONE);
+        label_4.setLayoutData(new GridData());
+        label_4.setText("ÕóÓª£º");
 
         comboFaction = new ComboViewer(container, SWT.READ_ONLY);
         comboFaction.setContentProvider(new FactionListContentProvider());

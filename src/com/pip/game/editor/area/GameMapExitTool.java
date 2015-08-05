@@ -30,7 +30,7 @@ public class GameMapExitTool implements IMapEditTool {
     // 父编辑器
     private GameAreaEditor editor;
     // 附着的编辑器
-    private GameMapViewer viewer;
+    protected GameMapViewer viewer;
     // 最近一次检测到的鼠标位置
     private int lastX, lastY;
 
@@ -45,7 +45,7 @@ public class GameMapExitTool implements IMapEditTool {
     }
 
     // 判断一个坐标是否可以放置当前选中的NPC。必须保证NPC有一部分在屏幕内。
-    private boolean isValidPos(Point pt) {
+    protected boolean isValidPos(Point pt) {
         GameMap map = viewer.getMap();
         Rectangle bounds = viewer.getExitIcon(0).getBounds();
         bounds.x += pt.x;
@@ -85,19 +85,7 @@ public class GameMapExitTool implements IMapEditTool {
         if (isValidPos(pt)) {
             // 创建一个新出口
             GameMapInfo mapInfo = viewer.getMapInfo();
-            GameMapExit exit = null;
-            ProjectConfig config = ProjectData.getActiveProject().config;
-            if(config.gameMapExitClass != null && config.gameMapExitClass.trim().length() > 0){
-                try {
-                    String className = config.gameMapExitClass.trim();
-                    Class clzz = config.getProjectClassLoader().loadClass(className);
-                    exit = (GameMapExit) clzz.newInstance();
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }else{
-            	exit = new GameMapExit();
-            }
+            GameMapExit exit = new GameMapExit();
             exit.owner = mapInfo;
             exit.id = 0;
             while (true) {

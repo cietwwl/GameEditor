@@ -58,6 +58,7 @@ import com.pip.mapeditor.data.GameMap;
 import com.pip.mapeditor.data.MapFile;
 import com.pip.mapeditor.tool.IMapEditTool;
 import com.pip.util.AutoSelectAll;
+import com.pip.util.Utils;
 
 public class ChooseLocationDialog extends Dialog {
     private HashMap<GameArea, MapFile> mapCache = new HashMap<GameArea, MapFile>();
@@ -67,7 +68,8 @@ public class ChooseLocationDialog extends Dialog {
     private String searchCondition;
     
     private String condition;
-
+    private int[] defaultConditionMapXY;
+    private boolean tipOldSelectLocation = false; 
     class TreeLabelProvider extends LabelProvider {
         public String getText(Object element) {
             if (element instanceof ProjectData) {
@@ -182,6 +184,23 @@ public class ChooseLocationDialog extends Dialog {
         super(parentShell);
         
         this.condition = condition;
+    }
+    public ChooseLocationDialog(Shell parentShell,String condition,String defaultCondition){
+        super(parentShell);
+        this.condition = condition;
+//        <l>48,°ÍÀ­Ä·Ñ§Ô°:93,75</l>
+        if(defaultCondition != null && defaultCondition.length() > 7){
+            int begin = 3;
+            int pos = defaultCondition.indexOf(',');
+            int defaultConditionMapGlobalId = Integer.parseInt(defaultCondition.substring(begin, pos));
+            begin = pos + 1;
+            pos = defaultCondition.indexOf(':');
+            String defaultConditionMapName = defaultCondition.substring(begin, pos);
+            begin = pos + 1;
+            this.defaultConditionMapXY = Utils.stringToIntArray(defaultCondition.substring(begin, defaultCondition.length() - 4),',');
+            tipOldSelectLocation = true;
+            location[0] = defaultConditionMapGlobalId;
+        }
     }
     
     public ChooseLocationDialog(Shell parentShell) {
@@ -349,12 +368,16 @@ public class ChooseLocationDialog extends Dialog {
             if (mapFile == null) {
                 mapFile = new MapFile();
                 mapFile.load(mapInfo.owner.getFile(0));
-                mapCache.put(mapInfo.owner, mapFile);
             }
             gameMap = mapFile.getMaps().get(mapInfo.id);
             mapViewer.setInput(mapFile.getMaps().get(mapInfo.id), mapInfo, mapInfo.owner.owner.config.mapFormats.get(0));
             mapViewer.setTool(new PickupLocationTool());
             mapViewer.redraw();
+            if(tipOldSelectLocation){
+                location[1] = defaultConditionMapXY[0] * gameMap.parent.getCellSize();
+                location[2] = defaultConditionMapXY[1] * gameMap.parent.getCellSize();
+                tipOldSelectLocation = false;
+            }
         } catch (Exception e) {
             MessageDialog.openError(getShell(), "´íÎó", e.toString());
         }
@@ -508,7 +531,6 @@ public class ChooseLocationDialog extends Dialog {
         this.mapFile = null;
         this.mapInfo = null;
         MapEditor.imageCache.clear();
-        mapCache.clear();
         System.gc();
         return super.close();
     }

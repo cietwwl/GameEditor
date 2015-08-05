@@ -36,7 +36,7 @@ public class GameMapExitPropertySource implements IPropertySource {
         ret[1] = new PropertyDescriptor("id", "ID");
         ret[2] = new LocationPropertyDescriptor("targetLocation", "目标位置");
         ret[3] = new ComboBoxPropertyDescriptor("showName", "显示名称", new String[] { "是", "否" });
-        ret[4] = new ComboBoxPropertyDescriptor("exitType", "通道类型", new String[] { "普通", "记录当前位置", "返回记录位置", "寻路用","自定义" });
+        ret[4] = new ComboBoxPropertyDescriptor("exitType", "通道类型", new String[] { "普通", "记录当前位置", "返回记录位置", "寻路用","副本入口","副本出口" });
         ret[5] = new TextPropertyDescriptor("positionVarName", "变量名称");
         ret[6] = new ConstraintsPropertyDescriptor("constraints", "通过限制");
         ret[7] = new TextPropertyDescriptor("constraintsDes", "限制描述");

@@ -172,7 +172,7 @@ public class PlayerLocationMapMaker {
         return img;
     }
     
-    private void drawNPCLayer(GC gc, GameMap map, GameMapInfo gmi, boolean useLarge) {
+    protected void drawNPCLayer(GC gc, GameMap map, GameMapInfo gmi, boolean useLarge) {
         // 人物层，需要加入绘制NPC和出口的方法
         PipAnimateSet animates = map.parent.getAnimates();
         for (GameMapObject obj : gmi.objects) {
@@ -180,10 +180,10 @@ public class PlayerLocationMapMaker {
                 GameMapNPC npc = (GameMapNPC)obj;
                 try {
 //                    File source = useLarge ? npc.template.image.largeSource : npc.template.image.source;
-                    File source = null;
-                    if(npc.template.image.animateFiles != null && npc.template.image.animateFiles.length > 0) {
-                        source = new File(ProjectData.getActiveProject().baseDir, "/Animations/" + npc.template.image.animateFiles[0]);
-                    }
+                    File source = npc.template.image.getAnimateFile(0);
+//                    if(npc.template.image.animateFiles != null && npc.template.image.animateFiles.length > 0) {
+//                        source = new File(ProjectData.getActiveProject().baseDir, "/Animations/" + npc.template.image.animateFiles[0]);
+//                    }
                     
                     if(source == null) {
                         System.out.println("not found npc image:" + npc.template.id + ",areaid=" + gmi);
@@ -192,7 +192,7 @@ public class PlayerLocationMapMaker {
                     
                     PipAnimateSet pas = new PipAnimateSet();
                     pas.load(source);
-                    PipAnimate animate = pas.getAnimate(ProjectData.getActiveProject().getDefaultNPCAnimateIndex(pas));
+                    PipAnimate animate = pas.getAnimate(0);
                     
                     int rx = (int)(npc.x * (useLarge ? 2 : 1));
                     int ry = (int)(npc.y * (useLarge ? 2 : 1));

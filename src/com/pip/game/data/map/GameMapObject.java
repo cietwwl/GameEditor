@@ -40,37 +40,37 @@ public class GameMapObject {
         return (owner.getGlobalID() << 12) | id;
     }
     
-    public static byte[] getMapNpcs(ProjectData project, int areaID) {
-        List<GameMapNPC> ls = new ArrayList<GameMapNPC>();
-        GameArea ga = (GameArea) project.findObject(GameArea.class, areaID);
-        GameAreaInfo areaInfo = ga.getAreaInfo();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-        try {
-            dos.writeByte(areaInfo.maps.size()); // 关卡中有几个MAP
-            for (GameMapInfo mi : areaInfo.maps) {
-                ls.clear();
-                for (GameMapObject obj : mi.objects) {
-                    if (obj instanceof GameMapNPC) {
-                        ls.add((GameMapNPC) obj);
-                    }
-                }
-                dos.writeByte(mi.id);//mi.id
-                dos.writeByte(ls.size());
-                if (ls.size() > 0) {
-                    for (GameMapNPC npc : ls) {
-                        byte[] bytes = npc.toClientBytes(); 
-                        dos.writeInt(bytes.length);
-                        dos.write(bytes);
-                    }
-                }
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return bos.toByteArray();
-    }
+//    public static byte[] getMapNpcs(ProjectData project, int areaID) {
+//        List<GameMapNPC> ls = new ArrayList<GameMapNPC>();
+//        GameArea ga = (GameArea) project.findObject(GameArea.class, areaID);
+//        GameAreaInfo areaInfo = ga.getAreaInfo();
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        DataOutputStream dos = new DataOutputStream(bos);
+//        try {
+//            dos.writeByte(areaInfo.maps.size()); // 关卡中有几个MAP
+//            for (GameMapInfo mi : areaInfo.maps) {
+//                ls.clear();
+//                for (GameMapObject obj : mi.objects) {
+//                    if (obj instanceof GameMapNPC) {
+//                        ls.add((GameMapNPC) obj);
+//                    }
+//                }
+//                dos.writeByte(mi.id);//mi.id
+//                dos.writeByte(ls.size());
+//                if (ls.size() > 0) {
+//                    for (GameMapNPC npc : ls) {
+//                        byte[] bytes = npc.toClientBytes(); 
+//                        dos.writeInt(bytes.length);
+//                        dos.write(bytes);
+//                    }
+//                }
+//            }
+//        }
+//        catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return bos.toByteArray();
+//    }
     
     /**
      * 在项目中根据对象ID查找一个对象。

@@ -138,8 +138,8 @@ public class SoundEditor extends DefaultDataObjectEditor {
         Sound dataDef = (Sound)editObject;
         if (browseDialog == null) {
             browseDialog = new FileDialog(getSite().getShell(), SWT.OPEN);
-            browseDialog.setFilterExtensions(new String[] { "*.mid", "*.mp3" });
-            browseDialog.setFilterNames(new String[] { "MIDI文件(*.mid)", "MP3文件(*.mp3)" });
+            browseDialog.setFilterExtensions(new String[] { "*.mid", "*.mp3","*.ogg" });
+            browseDialog.setFilterNames(new String[] { "MIDI文件(*.mid)", "MP3文件(*.mp3)","OGG文件(*.ogg)" });
             if (dataDef.source != null) {
                 browseDialog.setFilterPath(dataDef.source.getParent());
             }
@@ -149,6 +149,8 @@ public class SoundEditor extends DefaultDataObjectEditor {
             File newFile;
             if (file.toLowerCase().endsWith(".mid")) {
                 newFile = new File(dataDef.owner.baseDir, "Sounds/" + dataDef.id + ".mid");
+            } else if(file.toLowerCase().endsWith(".ogg")){
+                newFile = new File(dataDef.owner.baseDir,"Sounds/" + dataDef.id + ".ogg");
             } else {
                 newFile = new File(dataDef.owner.baseDir, "Sounds/" + dataDef.id + ".mp3");
             }

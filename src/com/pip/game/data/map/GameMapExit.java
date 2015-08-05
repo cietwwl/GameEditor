@@ -12,7 +12,7 @@ public class GameMapExit extends GameMapObject {
     public static final int TYPE_RECALL = 2;
     public static final int TYPE_INTERNAL = 3;
     public static final int TYPE_CUSTOM = 4;
-    
+    public static final int TYPE_INSTANCE_EXIT = 5;
     /** 目标地图ID */
     public int targetMap;
     /** 目标X位置（像素）*/

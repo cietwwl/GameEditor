@@ -1,7 +1,8 @@
 package com.pip.game.editor;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
@@ -22,11 +23,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -42,9 +40,14 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
-import com.pip.game.data.Animation;
+import scryer.ogre.material.MaterialConfig;
+import scryer.ogre.material.MaterialGroup;
+import scryer.ogre.mesh.MeshConfig;
+import scryer.ogre.ps.ParticleSystemManager;
+
 import com.pip.game.data.Currency;
 import com.pip.game.data.DataObject;
+import com.pip.game.data.GameMesh;
 import com.pip.game.data.NPCTemplate;
 import com.pip.game.data.NPCType;
 import com.pip.game.data.ProjectData;
@@ -55,8 +58,7 @@ import com.pip.game.data.quest.Quest;
 import com.pip.game.editor.property.ChooseAIDialog;
 import com.pip.game.editor.property.ChooseDropGroupDialog;
 import com.pip.game.editor.property.ChooseMultiQuestDialog;
-import com.pip.game.editor.util.AnimatePreviewer;
-import com.pip.game.editor.util.AnimationChooser;
+import com.pip.game.editor.util.SpriteChooser;
 import com.pip.util.AutoSelectAll;
 
 /**
@@ -186,23 +188,23 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
     protected Text textDescription;
     public Combo comboClazz;
     public Combo comboLevel;
-    protected AnimationChooser aniChooser;
+
+    private SpriteChooser spriteChooser;
     public ComboViewer comboType;
     protected Combo comboTypeCtrl;
-    protected AnimatePreviewer previewer;
     protected Text aiText;
     protected Button buttonAI;
     public Combo comboDifficulty;
     private Text textQuest;
+    public Combo comboMaterial;
 
-    protected TableViewer dropGroupTable;
+    private TableViewer dropGroupTable;
     protected Table table;
     private Action addDropGroup;
     private Action delDropGroup;
     private Combo comboAnalyzeClazz;
     private Combo comboAnalyzeLevel;
     
-    protected AbstractDataObjectEditor extendEditor;
 
     protected ScrolledComposite containerScroll;
     private Button buttonChangePass;
@@ -210,6 +212,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
     
     public Group baseGroup;
 
+    protected Composite container;
     /**
      * Create contents of the editor part
      * 
@@ -228,7 +231,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         containerScroll.setExpandHorizontal(true);
         containerScroll.setExpandVertical(true);
 
-        Composite container = new Composite(containerScroll, SWT.NONE);
+        container = new Composite(containerScroll, SWT.NONE);
         final GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 2;
         container.setLayout(gridLayout);
@@ -247,6 +250,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         baseGroup.setLayout(baseLayout);
 
         final Label label = new Label(baseGroup, SWT.NONE);
+        label.setLayoutData(new GridData());
         label.setText("ID：");
 
         textID = new Text(baseGroup, SWT.BORDER);
@@ -275,7 +279,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         textDescription.addFocusListener(AutoSelectAll.instance);
         textDescription.addModifyListener(this);
 
-        final Label label_3 = new Label(baseGroup, SWT.NONE);
+        final Label label_3 = new Label(baseGroup, SWT.FILL);
         label_3.setLayoutData(new GridData());
         label_3.setText("类型：");
 
@@ -342,19 +346,38 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
             }
         });
 
-        final Label label_4 = new Label(baseGroup, SWT.NONE);
-        label_4.setLayoutData(new GridData());
-        label_4.setText("图片：");
+//        final Label label_4 = new Label(baseGroup, SWT.NONE);
+//        label_4.setLayoutData(new GridData());
+//        label_4.setText("图片：");
 
-        aniChooser = new AnimationChooser(baseGroup, SWT.NONE);
-        aniChooser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        aniChooser.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                updatePreviewer();
-            }
-        });
-        aniChooser.setHandler(this);
-
+        spriteChooser = new SpriteChooser(this, ParticleEffectManager.getPsManager());
+        spriteChooser.createAnimationLabel(baseGroup, new GridData());
+        spriteChooser.createAnimationChooser(baseGroup, new GridData(SWT.FILL, SWT.CENTER, true, false));
+        spriteChooser.createMeshLabel(baseGroup, new GridData());
+        spriteChooser.createMeshChooser(baseGroup, new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        
+//        aniChooser = new AnimationChooser(baseGroup, SWT.NONE);
+//        aniChooser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+//        aniChooser.addModifyListener(new ModifyListener() {
+//            public void modifyText(ModifyEvent e) {
+//                updatePreviewer();
+//            }
+//        });
+//        aniChooser.setHandler(this);
+//
+//        final Label label_5 = new Label(baseGroup, SWT.NONE);
+//        label_5.setLayoutData(new GridData());
+//        label_5.setText("模型：");
+//
+//        meshChooser = new MeshChooser(baseGroup, SWT.NONE);
+//        meshChooser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//        meshChooser.addModifyListener(new ModifyListener() {
+//            public void modifyText(ModifyEvent e) {
+//                updateMeshPreviewer();
+//            }
+//        });
+//        meshChooser.setHandler(this);
+        
         final Label label_31 = new Label(baseGroup, SWT.NONE);
         label_31.setText("AI：");
 
@@ -368,13 +391,40 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         final GridData gd_buttonAI = new GridData();
         buttonAI.setLayoutData(gd_buttonAI);
         buttonAI.setText("...");
-        buttonAI.addSelectionListener(initAiButtonListenr());
+        buttonAI.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                ChooseAIDialog dlg = new ChooseAIDialog(aiText.getShell());
 
-        previewer = new AnimatePreviewer(baseGroup, SWT.NONE);
-        previewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 5, 1));
-        previewer.setListVisible(false);
-        previewer.setEditEnable(false);
+                dlg.setSelAi(((NPCTemplate) getEditObject()).aiDataID);
 
+                if (dlg.open() == Dialog.OK) {
+                    if (dlg.getSelectedAIData() != null) {
+                        aiText.setText("" + dlg.getSelectedAIData().id);
+                    }
+                }
+                setDirty(true);
+
+            }
+        });
+        final Label label_23 = new Label(baseGroup, SWT.NONE);
+        label_23.setLayoutData(new GridData());
+        label_23.setText("材质：");
+
+        comboMaterial =  new Combo(baseGroup, SWT.READ_ONLY);
+        comboMaterial.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        comboMaterial.addSelectionListener(new SelectionAdapter(){
+            public void widgetSelected(SelectionEvent event) {
+                NPCTemplate npc = (NPCTemplate)getEditObject();
+                npc.materialNameIndex = comboMaterial.getSelectionIndex();
+                String materialName = comboMaterial.getItem(npc.materialNameIndex);
+                spriteChooser.setMaterialName(materialName);
+                npc.materialName = materialName;
+                setDirty(true);
+            }
+        });
+        
+        spriteChooser.createPreviewer(baseGroup, new GridData(SWT.FILL, SWT.FILL, true, true, 5, 1));
+        
         buttonChangePass = new Button(baseGroup, SWT.CHECK);
         buttonChangePass.addSelectionListener(new SelectionAdapter() {
             public void widgetDefaultSelected(final SelectionEvent e) {
@@ -383,7 +433,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
                 setDirty(true);
             }
         });
-        final GridData gd_buttonChangePass = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+        final GridData gd_buttonChangePass = new GridData(SWT.LEFT, SWT.CENTER, false, false);
         buttonChangePass.setLayoutData(gd_buttonChangePass);
         buttonChangePass.setText("改变地图通过性");
         
@@ -396,13 +446,14 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
                 setDirty(true);
             }
         });
-        final GridData gd_buttonIsRandomRefresh = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+        final GridData gd_buttonIsRandomRefresh = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
         buttonIsRandomRefresh.setLayoutData(gd_buttonIsRandomRefresh);
         buttonIsRandomRefresh.setText("是否随机刷新(采集npc有效)");
         
         
 
         final Label label_6 = new Label(baseGroup, SWT.NONE);
+        label_6.setLayoutData(new GridData());
         label_6.setText("关联任务：");
 
         textQuest = new Text(baseGroup, SWT.BORDER);
@@ -514,29 +565,29 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         final GridData gd_comboAnalyzeClazz = new GridData(SWT.FILL, SWT.CENTER, true, false);
         comboAnalyzeClazz.setLayoutData(gd_comboAnalyzeClazz);
         
-        Group exGroup = new Group(container, SWT.NONE);
-        exGroup.setText("扩展属性");
-        GridData exGroup_gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
-        exGroup_gd.widthHint = 299;
-        exGroup_gd.heightHint = 1000;
-        exGroup.setLayoutData(exGroup_gd);
-        exGroup.setLayout(new FillLayout());
        
-        // 创建扩展属性编辑器
-        Class cls = ProjectData.getActiveProject().config.getExEditorbyClass(this.getEditObject().getClass());
-        if (cls != null) {
-            try {
-                Constructor c = cls.getConstructor(Composite.class, int.class, DefaultDataObjectEditor.class);
-                extendEditor = (AbstractDataObjectEditor)c.newInstance(exGroup, SWT.NONE, this);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+//        // 创建扩展属性编辑器
+//        Class cls = ProjectData.getActiveProject().config.getExEditorbyClass(this.getEditObject().getClass());
+//        if (cls != null) {
+//            try {
+//                Constructor c = cls.getConstructor(Composite.class, int.class, DefaultDataObjectEditor.class);
+//                extendEditor = (AbstractDataObjectEditor)c.newInstance(exGroup, SWT.NONE, this);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
 
-        updateView();
+     
+//        updateView();
         setDirty(false);
         setPartName(this.getEditorInput().getName());
         saveStateToUndoBuffer();
+        
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
     }
 
     protected void updateView() {
@@ -546,8 +597,15 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         textTitle.setText(dataDef.title);
         textDescription.setText(dataDef.description);
         
-        comboTypeCtrl.select(dataDef.owner.getDictObjectIndex(dataDef.type));
-        aniChooser.setSelectedObject(dataDef.image);
+        comboTypeCtrl.select(dataDef.type == null ? 0 : dataDef.owner.getDictObjectIndex(dataDef.type));
+        spriteChooser.setSelectedObject(dataDef.image);
+        final int fMaterialNameIndx = dataDef.materialNameIndex;
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                spriteChooser.setMaterialName(getMaterialNameByIndex(fMaterialNameIndx));
+            }
+        },1000);
         comboLevel.select(dataDef.level);
         comboClazz.select(dataDef.clazz);
         comboDifficulty.select(dataDef.difficulty);
@@ -556,21 +614,30 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         buttonChangePass.setSelection(dataDef.changePath);
         buttonIsRandomRefresh.setSelection(dataDef.isRandomRefresh);
         textQuest.setText(dataDef.questIDs);
-
-        if (extendEditor != null) {
-            try {
-                extendEditor.load();
-            } catch (Exception e) {
-                e.printStackTrace();
+        if(dataDef.image instanceof GameMesh){
+            GameMesh gamemesh = (GameMesh)dataDef.image;
+            MeshConfig meshConfig = MeshConfig.getBufferedMeshConfig(gamemesh.getAnimateFile(0));
+            if(meshConfig != null){
+                MaterialConfig materialConfig =  meshConfig.getMaterialConfig();
+                MaterialGroup materialGroup = materialConfig.getGroup();
+                List<String> materialItems = materialGroup.getAllMaterialItemNames();
+                String[] materialNames = new String[materialItems.size()];
+                for(int i = 0 ; i < materialItems.size() ; i++){
+                    materialNames[i] = materialItems.get(i);
+                }
+                comboMaterial.setItems(materialNames);
+                comboMaterial.select(dataDef.materialNameIndex);
             }
+        }else{
+            comboMaterial.setEnabled(false);
         }
-        updatePreviewer();
+
     }
 
     /**
      * 为NPC新增一个掉落组
      */
-    protected void onAdd() {
+    private void onAdd() {
         ChooseDropGroupDialog dropDialog = new ChooseDropGroupDialog(getSite().getShell());
         if (dropDialog.open() == IDialogConstants.OK_ID) {
             DropNode node = (DropNode) dropDialog.getSelectedObject().duplicate();
@@ -601,7 +668,7 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
     /**
      * 列表双击事件
      */
-    protected void onDoubleClick(Object selected) {
+    private void onDoubleClick(Object selected) {
         StructuredSelection sel = (StructuredSelection) selected;
         DropNode selGroup = (DropNode) sel.getFirstElement();
 
@@ -648,7 +715,20 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         dataDef.title = textTitle.getText().trim();
         dataDef.description = textDescription.getText();
         try {
-            dataDef.image = aniChooser.getSelectedObject();
+            dataDef.image = spriteChooser.getSelectedObject();
+            String materialName = spriteChooser.getMaterialName();
+            if(dataDef.image instanceof GameMesh){
+            	if(materialName != null){
+            	    dataDef.materialName = materialName;
+            	    dataDef.materialNameIndex = getMaterialNameIndexByName(materialName);
+            	}else{
+            	    dataDef.materialNameIndex = 0;
+            	    dataDef.materialName = getMaterialNameByIndex(dataDef.materialNameIndex);
+            	}
+                comboMaterial.setEnabled(true);
+                comboMaterial.setItems(getMaterialNames());
+                comboMaterial.select(dataDef.materialNameIndex);
+            }
         } catch (Exception e) {
             throw new Exception("请选择一个图片。");
         }
@@ -670,10 +750,6 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         
         dataDef.questIDs = textQuest.getText();
 
-        if (extendEditor != null) {
-            extendEditor.save();
-        }
-
         // 检查输入合法性
         DataObject dobj = ProjectData.getActiveProject().findObject(dataDef.getClass(), dataDef.id);
         if (dobj != null && dobj != getSaveTarget()) {
@@ -681,15 +757,6 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
         }
         if (dataDef.title.length() == 0) {
             throw new Exception("请输入标题。");
-        }
-    }
-
-    public void updatePreviewer() {
-        Animation imgDef = aniChooser.getSelectedObject();
-        if (imgDef != null) {
-            previewer.setAnimateFile(imgDef.getAnimateFile(0));
-        } else {
-            previewer.setAnimateFile(null);
         }
     }
 
@@ -714,19 +781,48 @@ public class NPCTemplateEditor extends DefaultDataObjectEditor {
             MessageDialog.openError(getSite().getShell(), "错误", e.toString());
         }
     }
-    
-    protected SelectionListener initAiButtonListenr(){
-    	return new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                ChooseAIDialog dlg = new ChooseAIDialog(aiText.getShell());
-                dlg.setSelAi(((NPCTemplate) getEditObject()).aiDataID);
-                if (dlg.open() == Dialog.OK) {
-                    if (dlg.getSelectedAIData() != null) {
-                        aiText.setText("" + dlg.getSelectedAIData().id);
-                    }
+    public int getMaterialNameIndexByName(String materialName){
+        int ret = 0;
+        String[] materialNames = getMaterialNames();
+        if(materialNames != null){
+            for(int i = 0 ; i < materialNames.length ; i++){
+                if(materialNames[i].equals(materialName)){
+                    ret = i ;
+                    break;
                 }
-                setDirty(true);
             }
-        };
+        }
+        return ret;
+    }
+    
+    public String getMaterialNameByIndex(int materialNameIndex){
+        String ret = null;
+        String[] materialNames = getMaterialNames();
+        if(materialNames != null){
+            for(int i = 0 ; i < materialNames.length ; i++){
+                if(i == materialNameIndex){
+                    ret = materialNames[i];
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+ 
+    public String[] getMaterialNames(){
+        String[] ret = null;
+        NPCTemplate dataDef = (NPCTemplate) editObject;
+        if(dataDef.image instanceof GameMesh){
+            GameMesh gamemesh = (GameMesh)dataDef.image;
+            MeshConfig meshConfig = MeshConfig.getBufferedMeshConfig(gamemesh.getAnimateFile(0));
+            if(meshConfig != null){
+                MaterialConfig materialConfig =  meshConfig.getMaterialConfig();
+                MaterialGroup materialGroup = materialConfig.getGroup();
+                List<String> materialItems = materialGroup.getAllMaterialItemNames();
+                ret = new String[materialItems.size()];
+                materialItems.toArray(ret);
+            }
+        }
+        return ret;
     }
 }

@@ -96,8 +96,6 @@ public class GameMapNPC extends GameMapObject {
     public String particle2 = "";
     
     public int headImage = -1;//头顶功能图标
-    public boolean showPlayerImage;
-    public int level;
     
     public GameMapNPC() {
         
@@ -118,28 +116,28 @@ public class GameMapNPC extends GameMapObject {
         this.broadcastDie = true;
     }
     
-    public byte[] toClientBytes(){
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-        try{
-            dos.writeInt(id);
-            dos.writeInt(x);
-            dos.writeInt(y);
-            dos.writeInt(template.image.id);
-            dos.writeUTF(name);
-            dos.writeBoolean(visible);
-            dos.writeBoolean(isFunctional);
-            dos.writeUTF(functionScript);
-            dos.writeByte(patrolPath.size());
-            for(int[] point : patrolPath){
-                dos.writeInt(point[0]);
-                dos.writeInt(point[1]);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return bos.toByteArray();
-    }
+//    public byte[] toClientBytes(){
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        DataOutputStream dos = new DataOutputStream(bos);
+//        try{
+//            dos.writeInt(id);
+//            dos.writeInt(x);
+//            dos.writeInt(y);
+//            dos.writeInt(template.image.id);
+//            dos.writeUTF(name);
+//            dos.writeBoolean(visible);
+//            dos.writeBoolean(isFunctional);
+//            dos.writeUTF(functionScript);
+//            dos.writeByte(patrolPath.size());
+//            for(int[] point : patrolPath){
+//                dos.writeInt(point[0]);
+//                dos.writeInt(point[1]);
+//            }
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//        return bos.toByteArray();
+//    }
     
     /**
      * 得到NPC的全名称，包括场景名称和NPC名称。

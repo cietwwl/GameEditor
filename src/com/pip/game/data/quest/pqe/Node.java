@@ -32,7 +32,5 @@ interface Node {
 
   /** Return the number of children the node has. */
   public int jjtGetNumChildren();
-  
-  public Node clone(Node parentNode);
 }
 /* JavaCC - OriginalChecksum=cdc89e8004ab504541399c28449595a7 (do not edit this line) */

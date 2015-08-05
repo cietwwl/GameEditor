@@ -28,8 +28,8 @@ import com.pip.game.data.quest.pqe.PQEUtils.SystemVar;
 public class NPCTemplate extends DataObject {
     /** 所属项目。*/
     public ProjectData owner;
-    /** NPC动画。*/
-    public Animation image;
+    /** NPC精灵。*/
+    public Sprite image;
     /** NPC类型。*/
     public NPCType type;
     /** NPC职业 */
@@ -70,7 +70,10 @@ public class NPCTemplate extends DataObject {
     public int walkSpeed;
     
     public String aiImplClass;
+    //材质索引
+    public int materialNameIndex;
     
+    public String materialName;
     /**
      * 是否随机刷新，只针对采集npc有效
      */
@@ -104,6 +107,8 @@ public class NPCTemplate extends DataObject {
         clazz = oo.clazz;
         level = oo.level;
         difficulty = oo.difficulty;
+        materialNameIndex = oo.materialNameIndex;
+        materialName = oo.materialName;
         aiDataID = oo.aiDataID;
         questIDs = oo.questIDs;
         isRandomRefresh = oo.isRandomRefresh;
@@ -150,13 +155,28 @@ public class NPCTemplate extends DataObject {
         
         int typeID = Integer.parseInt(elem.getAttributeValue("type"));
         type = (NPCType)owner.findDictObject(NPCType.class, typeID);
-        image = (Animation)owner.findObject(Animation.class, Integer.parseInt(elem.getAttributeValue("image")));
+        int imageId = Integer.parseInt(elem.getAttributeValue("image"));
+        if(imageId < 0){
+        }else{
+            int type = imageId / Sprite.MAX_SPRITE_ID;
+            int _imageId = imageId % Sprite.MAX_SPRITE_ID;
+            if(type == Sprite.ANIMATION){
+                image = (Animation)owner.findObject(Animation.class, _imageId);
+            }else if(type == Sprite.MESH){
+                image = (GameMesh)owner.findObject(GameMesh.class, _imageId);
+            }
+        }
         try {
             clazz = Integer.parseInt(elem.getAttributeValue("clazz"));
         } catch (Exception e) {
         }
         try {
             difficulty = Integer.parseInt(elem.getAttributeValue("difficulty"));
+            materialNameIndex = Integer.parseInt(elem.getAttributeValue("materialNameIndex"));
+            materialName = elem.getAttributeValue("materialName");
+            if(materialName == null){
+                materialName = "";
+            }
         } catch (Exception e) {
         }
         level = Integer.parseInt(elem.getAttributeValue("level"));
@@ -191,10 +211,11 @@ public class NPCTemplate extends DataObject {
     public Element save() {
         Element ret = new Element("npc");
         ret.addAttribute("id", String.valueOf(id));
-        if (image == null) {
+        if(image != null){
+            int _imageId = image.id + Sprite.MAX_SPRITE_ID * image.getType();
+            ret.addAttribute("image", String.valueOf(_imageId));
+        }else{
             ret.addAttribute("image", "-1");
-        } else {
-            ret.addAttribute("image", String.valueOf(image.id));
         }
         ret.addAttribute("title", title);
         ret.addAttribute("description",description);
@@ -210,6 +231,8 @@ public class NPCTemplate extends DataObject {
         ret.addAttribute("questId", questIDs);
         ret.addAttribute("clazz", String.valueOf(clazz));
         ret.addAttribute("difficulty", String.valueOf(difficulty));
+        ret.addAttribute("materialNameIndex", String.valueOf(materialNameIndex));
+        ret.addAttribute("materialName", materialName==null?"":materialName);
         ret.addAttribute("level", String.valueOf(level));
         ret.addAttribute("changepath", String.valueOf(changePath));
         ret.addAttribute("aiDataID", String.valueOf(aiDataID));
@@ -260,4 +283,5 @@ public class NPCTemplate extends DataObject {
     public boolean i18n(I18NContext context) {
         return false;
     }
+
 }

@@ -110,7 +110,7 @@ import com.swtdesigner.ResourceManager;
 public class GameAreaEditor extends DefaultDataObjectEditor implements ImageViewerListener, SelectionListener,
         Runnable, IFileModificationListener {
 
-    class QuestListContentProvider implements IStructuredContentProvider {
+    public class QuestListContentProvider implements IStructuredContentProvider {
         // 支持2种input，Integer表示mapid，GameMapNPC表示NPC
         public Object[] getElements(Object inputElement) {
             java.util.List retList = new ArrayList();
@@ -179,7 +179,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
         }
     }
     
-    class NPCTemplateListProvider implements IStructuredContentProvider {
+    public class NPCTemplateListProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
             java.util.List<DataObject> list = ((ProjectData) inputElement).getDataListByType(NPCTemplate.class);
             java.util.List<DataObject> retList = new ArrayList<DataObject>();
@@ -228,7 +228,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
         return false;
     }
 
-    class MonsterGroupListProvider implements IStructuredContentProvider {
+    public class MonsterGroupListProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
             return ((ProjectData) inputElement).getDataListByType(MonsterGroup.class).toArray();
         }
@@ -243,9 +243,9 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     protected Composite propertyContainer;
     protected ListViewer npcTemplateListViewer;
     protected List npcTemplateList;
-    private ListViewer monsterGroupListViewer;
+    protected ListViewer monsterGroupListViewer;
     protected List monsterGroupList;
-    private Text textSource;
+    protected Text textSource;
     public Text textDescription;
     public Text textTitle;
     public Text textID;
@@ -258,18 +258,18 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     protected GameAreaInfo areaInfo;
 
     protected GameMapViewer mapView;
-    private ToolBar pageToolBar;
+    protected ToolBar pageToolBar;
     private ArrayList<ToolItem> pageItems;
     protected PropertySheetViewer propEditor;
     protected ListViewer questListViewer;
-    private List questList;
+    protected List questList;
 
     private java.util.List<Quest> sceneQuests = new ArrayList<Quest>();
 
     protected boolean playAnimate = GLUtils.glEnabled;
-    private boolean disposed;
-    private Thread animateThread;
-    private Display display;
+    protected boolean disposed;
+    protected Thread animateThread;
+    protected Display display;
 
     protected ToolItem pickupItem;
     protected ToolItem npcItem;
@@ -357,7 +357,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
         textDescription.setLayoutData(gd_textDescription);
         textDescription.addFocusListener(AutoSelectAll.instance);
         textDescription.addModifyListener(this);
-        
+
         final Label label_21 = new Label(composite2, SWT.NONE);
         label_21.setText("参考关卡：");
 
@@ -374,7 +374,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
                 setDirty(true);
             }
         });
-
+        
         final Label label_3 = new Label(composite2, SWT.NONE);
         label_3.setText("目录：");
 
@@ -808,6 +808,40 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
         emulateItem.setImage(ResourceManager.getPluginImage(WorkshopPlugin.getDefault(), "icons/mapeditor/character.gif"));
         emulateItem.setToolTipText("模拟人物行走");
             
+//        monsterRefreshPointItem = new ToolItem(toolBar,SWT.RADIO);
+//        monsterRefreshPointItem.setToolTipText("怪物组刷新点");
+//        monsterRefreshPointItem.setImage(ResourceManager.getPluginImage(WorkshopPlugin.getDefault(), "icons/mapeditor/npc.gif"));
+//        monsterRefreshPointItem.addSelectionListener(new SelectionAdapter() {
+//            public void widgetSelected(final SelectionEvent e){
+//                updateTool();
+//            } 
+//        });
+//        
+//        passDoorItem = new ToolItem(toolBar,SWT.RADIO);
+//        passDoorItem.setToolTipText("阻挡门");
+//        passDoorItem.setImage(ResourceManager.getPluginImage(WorkshopPlugin.getDefault(), "icons/mapeditor/npc.gif"));
+//        passDoorItem.addSelectionListener(new SelectionAdapter() {
+//            public void widgetSelected(final SelectionEvent e){
+//                updateTool();
+//            } 
+//        });
+//        
+//        canBrokenNpcItem = new ToolItem(toolBar,SWT.RADIO);
+//        canBrokenNpcItem.setToolTipText("可破坏NPC");
+//        canBrokenNpcItem.setImage(ResourceManager.getPluginImage(WorkshopPlugin.getDefault(), "icons/mapeditor/npc.gif"));
+//        canBrokenNpcItem.addSelectionListener(new SelectionAdapter() {
+//            public void widgetSelected(final SelectionEvent e){
+//                updateTool();
+//            } 
+//        });
+        
+        
+        
+        
+        
+        
+        
+        
         final ToolItem newItemToolItem = new ToolItem(toolBar, SWT.PUSH);
         newItemToolItem.setDisabledImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(),
                 "icons/mapeditor/sep.gif"));
@@ -931,7 +965,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
         playerItemSky.setToolTipText("天空层碰撞检测");
         playerItemSky.setImage(ResourceManager.getPluginImage(EditorPlugin.getDefault(), "icons/mapeditor/npc.gif"));*/
     }
-
+    
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
         super.init(site, input);
@@ -974,7 +1008,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     }
 
     // 修正地图描述信息，使其和地图文件一致
-    private boolean verifyMapInfo() {
+    protected boolean verifyMapInfo() {
         boolean changed = false;
         GameArea dataDef = (GameArea) editObject;
         if (areaInfo.maps.size() > currentMapFile.getMaps().size()) {
@@ -1145,7 +1179,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     }
 
     // 创建地图页签
-    private void createPageButtons() {
+    protected void createPageButtons() {
         pageItems = new ArrayList<ToolItem>();
         for (int i = 0; i < currentMapFile.getMaps().size(); i++) {
             ToolItem item = new ToolItem(pageToolBar, SWT.RADIO);
@@ -1375,7 +1409,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     }
 
     // 选中地图改变事件。
-    private void activePageChanged() {
+    protected void activePageChanged() {
         GameMap map = getActiveMap();
         mapView.setInput(map, areaInfo.maps.get(getActiveMapIndex()), currentFormat);
         updateTool();
@@ -1612,7 +1646,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     /*
      * 导入新的地图文件。
      */
-    private void importMapFile(int format) {
+    protected void importMapFile(int format) {
         if (mapFileDialog == null) {
             mapFileDialog = new FileDialog(getSite().getShell(), SWT.OPEN);
             mapFileDialog.setFilterPath(ProjectData.getActiveProject().config.getPipLibDir().getAbsolutePath());
@@ -1679,7 +1713,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     /*
      * 修改当前查看的地图格式。
      */
-    private void onFormatChanged(int format) {
+    protected void onFormatChanged(int format) {
         if (format == currentFormat.id) {
             return;
         }
@@ -1710,7 +1744,7 @@ public class GameAreaEditor extends DefaultDataObjectEditor implements ImageView
     /*
      * 同步地图的通过性设置。GameMap.tileInfo数组。
      */
-    private void onSyncPassable() {
+    protected void onSyncPassable() {
         GameArea gameArea = (GameArea)editObject;
         ArrayList<MapFormat> validFormats = new ArrayList<MapFormat>(); 
         for (int i = 0; i < gameArea.maps.length; i++) {

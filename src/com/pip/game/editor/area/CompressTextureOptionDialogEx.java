@@ -120,11 +120,11 @@ public class CompressTextureOptionDialogEx extends Dialog {
 				return;
 			}
 			if (CompressTextureOption.ETC1.equals(editObject.format)) {
-			    String msg = "ETC1格式不支持透明色，你确定你要使用这个格式吗？";
-			    if (!MessageDialog.openConfirm(getShell(), "确认", msg)) {
-			        return;
-			    }
-			}
+                String msg = "ETC1格式不支持透明色，你确定你要使用这个格式吗？";
+                if (!MessageDialog.openConfirm(getShell(), "确认", msg)) {
+                    return;
+                }
+            }
 		}
 		super.buttonPressed(buttonId);
 	}

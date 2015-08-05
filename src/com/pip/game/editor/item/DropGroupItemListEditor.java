@@ -47,9 +47,7 @@ public class DropGroupItemListEditor extends Canvas implements PaintListener, Di
     private SubDropGroup group;
     
     // 锁定的掉落项的ID组合（不是索引，而是DropItem的ID）
-    protected Set<Integer> lockIDs = new HashSet<Integer>();
-    //锁定ID变化时是否支持设置dirty标记
-    protected boolean dirtyOnLockIds = false; 
+    private Set<Integer> lockIDs = new HashSet<Integer>();
     
     // 各条目显示临时数据
     private Rectangle[] barBounds;
@@ -118,7 +116,6 @@ public class DropGroupItemListEditor extends Canvas implements PaintListener, Di
                             } else {
                                 lockIDs.add(item.id);
                             }
-                            notifyLockIDsChanged();
                             redraw();
                         }
                     }
@@ -390,15 +387,5 @@ public class DropGroupItemListEditor extends Canvas implements PaintListener, Di
         if (bufferImg != null) {
             bufferImg.dispose();
         }
-    }
-    
-    /**
-     * 锁定的掉落项变更通知
-     */
-    public void notifyLockIDsChanged(){
-    	if(dirtyOnLockIds){
-    		group.updateLockIDs(lockIDs);
-    		fireModified();
-    	}
     }
 }

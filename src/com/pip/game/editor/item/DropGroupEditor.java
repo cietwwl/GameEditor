@@ -63,11 +63,11 @@ import com.pip.game.editor.EditorPlugin;
  * 
  */
 public class DropGroupEditor extends DefaultDataObjectEditor implements ISelectionChangedListener, SelectionListener {
-    private Text textDropRate;
-    private Text textMaxMonsterLevel;
-    private Text textMinMonsterLevel;
+    protected Text textDropRate;
+    protected Text textMaxMonsterLevel;
+    protected Text textMinMonsterLevel;
     
-    class ItemTreeLabelProvider extends LabelProvider {
+    public class ItemTreeLabelProvider extends LabelProvider {
         public String getText(Object element) {
             return super.getText(element);
         }
@@ -84,7 +84,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
         }
     }
 
-    class ItemTreeContentProvider implements IStructuredContentProvider, ITreeContentProvider {
+    public class ItemTreeContentProvider implements IStructuredContentProvider, ITreeContentProvider {
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
         }
 
@@ -179,64 +179,64 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
 
     public static final String ID = "com.pip.game.editor.item.DropGroupEditor"; //$NON-NLS-1$
 
-    private static final String[] COMBO_DROP_TYPE = { "世界掉落", "普通掉落" };
-    private static final String[] COMBO_ITEM_TYPE = { "1.物品", "2.装备", "3.掉落组", "4.金钱", "5.经验值" };
+    protected static final String[] COMBO_DROP_TYPE = { "世界掉落", "普通掉落" };
+    protected static final String[] COMBO_ITEM_TYPE = { "1.物品", "2.装备", "3.掉落组", "4.金钱", "5.经验值" };
     
-    private String[] dropTypeNames;
-    private int[] dropTypeIDs;
+    protected String[] dropTypeNames;
+    protected int[] dropTypeIDs;
 
     // 基本属性
 
     // 掉落组ID
-    private Text textID;
+    protected Text textID;
     // 掉落组名称
-    private Text textTitle;
+    protected Text textTitle;
     // 掉落组掉落数量下限
-    private Text textQuantityMin;
+    protected Text textQuantityMin;
     // 掉落组掉落数量上限
-    private Text textQuantityMax;
+    protected Text textQuantityMax;
     // 掉落组类型 0:世界掉落 1.普通掉落
-    private Combo comboDropType;
+    protected Combo comboDropType;
 
     // 等级列表编辑
 
     // 等级范围列表
-    private ListViewer levelRangeList;
+    public ListViewer levelRangeList;
     // 掉落等级范围上限
-    private Text textLevelMax;
+    protected Text textLevelMax;
     // 掉落等级范围下限
-    private Text textLevelMin;
+    protected Text textLevelMin;
     // 掉落职业限制
-    private Combo comboJob;
+    protected Combo comboJob;
     // 添加一个等级范围组
-    private Button buttonAddGroup;
+    protected Button buttonAddGroup;
     // 删除一个等级范围组
-    private Button buttonDelGroup;
+    protected Button buttonDelGroup;
     // 更新一个等级范围组
-    private Button buttonUpdateGroup;
+    protected Button buttonUpdateGroup;
 
     // 掉落物品列表
 
     // 显示掉落组权重的标签
-    private Label subGroupWeight;
+    protected Label subGroupWeight;
     // 掉落物品列表
     protected DropGroupItemListEditor dropItemEditor;
 
     // 搜索添加物品界面
     
     // 掉落类型选择： 1.物品 2.装备 3.掉落组 4.金钱 5.经验
-    private Combo comboType;
+    protected Combo comboType;
     // 添加数量
     // 候选物品列表
-    private TreeViewer itemTreeViewer;
-    private Tree itemTree;
+    protected TreeViewer itemTreeViewer;
+    protected Tree itemTree;
     // 添加物品按钮
-    private Button buttonAddDropItem;
-    private Composite worldDropComposite;
-    private Label labelSearchCondition;
-    private Text textSearchCondition;
-    private String searchCondition = "";
-    private Button cbValid;
+    protected Button buttonAddDropItem;
+    protected Composite worldDropComposite;
+    protected Label labelSearchCondition;
+    protected Text textSearchCondition;
+    protected String searchCondition = "";
+    protected Button cbValid;
 
 
     /**
@@ -439,16 +439,12 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
 
         final Composite compositeDrop = new Composite(sashForm, SWT.NONE);
         final GridLayout gridLayout_2 = new GridLayout();
-        gridLayout_2.numColumns = 3;
+        gridLayout_2.numColumns = 2;
         compositeDrop.setLayout(gridLayout_2);
 
         subGroupWeight = new Label(compositeDrop, SWT.NONE);
         subGroupWeight.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         subGroupWeight.setText("掉落列表：");
-
-        final Label label_12 = new Label(compositeDrop, SWT.NONE);
-        label_12.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-        label_12.setText("[鼠标右键，可锁定比例值]");
 
         final Button buttonAverage = new Button(compositeDrop, SWT.NONE);
         buttonAverage.addSelectionListener(new SelectionAdapter() {
@@ -460,7 +456,16 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
         buttonAverage.setLayoutData(gd_buttonAverage);
         buttonAverage.setText("均分掉落率");
 
-        initDropItemEditor(compositeDrop);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(compositeDrop, SWT.V_SCROLL);
+        scrolledComposite.getVerticalBar().setPageIncrement(500);
+        scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+
+        dropItemEditor = new DropGroupItemListEditor(scrolledComposite, SWT.NONE); 
+        dropItemEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        dropItemEditor.addModifyListener(this);
+        
+        scrolledComposite.setContent(dropItemEditor);
+
         // 添加物品界面
 
         final Composite compositeItemList = new Composite(sashForm, SWT.NONE);
@@ -544,25 +549,14 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
         setPartName(this.getEditorInput().getName());
         saveStateToUndoBuffer();
     }
-    
-    public void initDropItemEditor(Composite parent){
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL);
-        scrolledComposite.getVerticalBar().setPageIncrement(500);
-        scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-        
-        dropItemEditor = new DropGroupItemListEditor(scrolledComposite, SWT.NONE); 
-        dropItemEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        dropItemEditor.addModifyListener(this);
-        
-        scrolledComposite.setContent(dropItemEditor);
-    }
+
     /**
      * 将一个掉落组的数据显示到界面元素
      * 
      * @param group
      *            掉落组数据对象
      */
-    private void setCurrentData(DropGroup group) {
+    protected void setCurrentData(DropGroup group) {
         textID.setText(String.valueOf(group.id));
         textTitle.setText(group.title);
         textQuantityMin.setText(String.valueOf(group.quantityMin));
@@ -606,9 +600,9 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
      * 
      * @param subDrop
      */
-    protected void setSubDropGroup(SubDropGroup subDrop) {
+    private void setSubDropGroup(SubDropGroup subDrop) {
         if (subDrop == null) {
-            dropItemEditor.setInput( genSubDropGroup(0, 0, 0));
+            dropItemEditor.setInput(new SubDropGroup());
             return;
         }
 
@@ -624,7 +618,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
      * 
      * @param message
      */
-    private void showMessage(String message) {
+    protected void showMessage(String message) {
         MessageDialog.openError(getSite().getShell(), "提示！", message);
     }
 
@@ -646,7 +640,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
         obj.getParent().layout();
     }
 
-    private void showControl(Control obj) {
+    protected void showControl(Control obj) {
         obj.setVisible(true);
         ((GridData) obj.getLayoutData()).exclude = false;
         obj.getParent().layout();
@@ -717,7 +711,10 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
             return;
         }
 
-        SubDropGroup sub = genSubDropGroup(levelMax, levelMin, job);
+        SubDropGroup sub = new SubDropGroup();
+        sub.levelMax = levelMax;
+        sub.levelMin = levelMin;
+        sub.job = job;
         group.subGroup.add(sub);
         
         levelRangeList.refresh();
@@ -726,13 +723,6 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
         setDirty(true);
     }
 
-    protected SubDropGroup genSubDropGroup(int levelMax, int levelMin, int job){
-    	  SubDropGroup sub = new SubDropGroup();
-          sub.levelMax = levelMax;
-          sub.levelMin = levelMin;
-          sub.job = job;
-          return sub;
-    }
     /**
      * 删除等级范围消息处理
      */
@@ -797,7 +787,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
      * @param type 掉落项目类型
      * @param obj 掉落对象，物品，装备或掉落组
      */
-    private void tryAddDropItem(DropGroup group, SubDropGroup owner, int type, DataObject obj) throws Exception {
+    protected void tryAddDropItem(DropGroup group, SubDropGroup owner, int type, DataObject obj) throws Exception {
         if (obj instanceof DropGroup) {
             if (!group.isGroupValid((DropGroup)obj)) {
                 throw new Exception("有递归调用的掉落组！");
@@ -817,7 +807,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
     /**
      * 添加一个掉落物品
      */
-    private void onAddItem() {
+    protected void onAddItem() {
         int dropType = dropTypeIDs[comboType.getSelectionIndex()];
 
         // 查找选中的子掉落组
@@ -861,7 +851,7 @@ public class DropGroupEditor extends DefaultDataObjectEditor implements ISelecti
     /**
      * 等级范围列表数据内容提供类
      */
-    class ListContentProvider implements IStructuredContentProvider {
+    public class ListContentProvider implements IStructuredContentProvider {
         public Object[] getElements(Object inputElement) {
             if (inputElement instanceof List) {
                 List inputData = (List) inputElement;

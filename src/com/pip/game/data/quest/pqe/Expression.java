@@ -20,13 +20,6 @@ public class Expression extends SimpleNode {
         super(p, id);
     }
 
-    public Expression clone(Node parentNode){
-        Expression ret = (Expression)super.clone(parentNode);
-        ret.op = op;
-        
-        return ret;
-    }
-    
     /**
      * 转换为原始字符串表示。
      */

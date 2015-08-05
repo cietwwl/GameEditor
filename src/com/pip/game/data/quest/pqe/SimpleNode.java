@@ -2,8 +2,6 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=false,NODE_PREFIX=,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package com.pip.game.data.quest.pqe;
 
-import java.lang.reflect.Constructor;
-
 public
 class SimpleNode implements Node {
 
@@ -75,33 +73,6 @@ class SimpleNode implements Node {
         }
       }
     }
-  }
-  
-  public Node clone(Node parentNode){
-      SimpleNode ret = null;
-      
-      try{
-          Constructor c = this.getClass().getDeclaredConstructor(new Class[]{int.class});   
-          c.setAccessible(true);
-          ret = (SimpleNode)c.newInstance(new Object[]{this.id});
-          ret.parent = parentNode;
-          ret.parser = parser;
-          ret.value = value;
-          
-          if(children != null){
-              ret.children = new Node[children.length];
-              
-              for(int i = 0; i < children.length; ++i){
-                  ret.children[i] = children[i].clone(ret);
-              }
-          }else{
-              ret.children = null;
-          }
-      }catch(Exception e){
-          e.printStackTrace();
-      }
-      
-      return ret;
   }
 }
 

@@ -122,6 +122,7 @@ public class IconCellEditor extends CellEditor {
     protected void doSetValue(Object value) {
         Assert.isTrue(textIconIndex != null && (value instanceof Integer));
         textIconIndex.setText(String.valueOf(value));
+        iconIndex = ((Integer)value).intValue();
     }
 
     /**
