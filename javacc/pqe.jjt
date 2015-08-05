@@ -1,0 +1,171 @@
+options {
+  MULTI=true;
+  NODE_PACKAGE="com.pip.game.data.quest.pqe";
+  NODE_PREFIX="";
+  NODE_DEFAULT_VOID=true;
+  LOOKAHEAD=2;
+  UNICODE_INPUT=true;
+  OUTPUT_DIRECTORY="com/pip/game/data/quest/pqe";
+  STATIC=false;
+}
+
+PARSER_BEGIN(Parser)
+
+package com.pip.game.data.quest.pqe;
+
+import java.io.*;
+
+class Parser {
+  public static void main(String args[]) {
+    System.out.println("Reading from " + args[0] + "...");
+    FileInputStream fis = null;
+    try {
+      fis = new FileInputStream(args[0]);
+      Parser t = new Parser(new InputStreamReader(fis, "GBK"));
+      ExpressionList n = t.Parse();
+      n.dump("");
+      System.out.println("Thank you.");
+    } catch (Exception e) {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    } finally {
+      if (fis != null) {
+        try {
+          fis.close();
+        } catch (Exception e) {
+        }
+      }
+    }
+  }
+}
+
+PARSER_END(Parser)
+
+SKIP : /* WHITE SPACE */
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN : /* CONSTANTS */
+{
+  < NUMBER_CONSTANT: <DECIMAL_CONSTANT> | <HEX_CONSTANT> >
+|
+  < #DECIMAL_CONSTANT: ("-")? (["0"-"9"])+ >
+|
+  < #HEX_CONSTANT: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < STRING_CONSTANT:
+      "\"" ( (~["\"","\\","\n","\r"]) | ("\\" ( ["n","t","r","\\","\""] ) ) )* "\""
+  >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER: [ "_", "$", ".", "a"-"z", "A"-"Z", "Ò»"-"ý›" ] >
+|
+  < #DIGIT: [ "0"-"9" ] >
+}
+
+TOKEN : /* SEPARATORS */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < FULLSTOP: "." >
+}
+
+TOKEN : /* OPERATORS */
+{
+  < ASSIGN: "=" >
+| < GT: ">" >
+| < LT: "<" >
+| < EQ: "==" >
+| < LE: "<=" >
+| < GE: ">=" >
+| < NE: "!=" >
+| < PLUS: "+" >
+| < MINUS: "-" >
+| < MULTIPLY: "*" >
+| < DIVIDE: "/" >
+| < MOD: "%" >
+| < AND: "&&" >
+| < OR: "||" >
+| < ANDB: "&" >
+| < ORB: "|" >
+| < LSHIFT: "<<" >
+| < RSHIFT: ">>" >
+| < PLUSASSIGN: "+=" >
+| < MINUSASSIGN: "-=" >
+| < MULTIPLYASSIGN: "*=" >
+| < DIVIDEASSIGN: "/=" >
+| < MODASSIGN: "%=" >
+| < ANDBASSIGN: "&=" >
+| < ORBASSIGN: "|=" >
+| < PLUSPLUS: "++" >
+| < MINUSMINUS: "--" >
+| < LSHIFTASSIGN: "<<=" >
+| < RSHIFTASSIGN: ">>=" >
+}
+
+/*****************************************
+ * THE PQE LANGUAGE GRAMMAR STARTS HERE *
+ *****************************************/
+
+ExpressionList Parse() #ExpressionList : {}
+{
+	( Expression() ( "," Expression() )* )?
+	<EOF>
+  { return jjtThis; }
+}
+
+void Expression() #Expression : 
+{
+  Token t;
+}
+{
+  Expr0()
+  (
+  (
+  t="==" { jjtThis.op = t.kind; }
+| t="!=" { jjtThis.op = t.kind; }
+| t="<=" { jjtThis.op = t.kind; }
+| t=">=" { jjtThis.op = t.kind; }
+| t="<" { jjtThis.op = t.kind; }
+| t=">" { jjtThis.op = t.kind; }
+  )
+  Expr0() 
+  )?
+| "(" ( Expression() ( "," Expression() )* )? ")"
+}
+
+void Expr0() #Expr0 : 
+{
+  Token t;
+}
+{
+  t=<NUMBER_CONSTANT> { jjtThis.type = 0; jjtThis.value = t.image; } 
+| t=<STRING_CONSTANT> { jjtThis.type = 1; jjtThis.value = t.image; }
+| FunctionCall() { jjtThis.type = 3; } 
+| t=<IDENTIFIER> { jjtThis.type = 2; jjtThis.value = t.image; }
+}
+
+void FunctionCall() #FunctionCall : 
+{
+  Token t;
+}
+{
+  t=<IDENTIFIER> { jjtThis.funcName = t.image; } 
+  "(" ( Expression() ( "," Expression() )* )? ")"
+}
+

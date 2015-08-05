@@ -1,0 +1,8 @@
+"tqwet",
+1 != 1,
+TaskFinished(0x10101) == 1,
+TaskFinished(GetTask(0x10101), 1) == 1,
+$_af.sfaf == 1,
+±‰¡ø1 == 1,
+ADD("killcount", -1),
+SET("killcount", killcount2)

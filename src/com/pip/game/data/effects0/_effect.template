@@ -1,0 +1,43 @@
+/**
+ * 
+ */
+package com.pip.game.data.effects0;
+
+import java.io.PrintWriter;
+
+import com.pip.game.data.skill.{0};
+import com.pip.game.data.skill.SkillConfig;
+
+/**
+ * @author jhkang
+ */
+public class Effect_{1} extends {0}'{'
+
+    public Effect_{1}(int t) '{'
+        super(t);
+    '}'
+    
+    public static int getId()'{'
+        return {1};
+    '}'
+    
+    public static String[] getTypeNames()'{'
+        return new String[]'{' {2} '}';                  /* {1} */
+    '}'
+    
+    public static String[] getTypeParames()'{'
+        return new String[]'{' {3} '}';
+    '}'
+    
+    public static boolean supportBuff = {4};
+    
+    private static int supportedSkillType = {5};
+    
+    public static boolean supportSkillType(int type)'{'
+        return (supportedSkillType & type) != 0;
+    '}'
+    
+//    public String getJavaInterface()'{'
+//   '}'
+    {6}
+'}'

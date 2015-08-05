@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/paradisevm.jar" sourcepath="Sanguo-Editor1.0src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/jdom.jar" sourcepath="Sanguo-Editor1.0src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/xercesImpl.jar" sourcepath="Sanguo-Editor1.0src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/ant.jar" sourcepath="Sanguo-Editor1.0src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/jxl.jar" sourcepath="Sanguo-Editor1.0src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/mina-core-1.1.7.jar" sourcepath="C:/Documents and Settings/Administrator/.m2/repository/org/apache/mina/mina-core/1.1.7/mina-core-1.1.7-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.6.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,16 @@
+token ::= identifier | constant | separator | operator
+identifier ::= alpha [ alpha | digit | "_" ]*
+constant ::= number | string
+number ::= decimal | hex
+decimal ::= [ "-" ]? digit+
+hex ::= "0" [ "x" | "X" ] [0-9a-fA-F]+
+string ::= "\"" (   (~["\"","\\","\n","\r"]) | ("\\"( ["n","t","r","\\","\""] ) ) )* "\""
+separator ::= "[" | "]" |"{" | "}" | "(" | ")" | ";" | ","
+operator ::= "+" | "-" | "*" | "/" | "&&" | "||" | "&" | "|" | "<" | ">" | "=" | "==" | "<=" | ">=" | "!=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|=" | "++" | "--" | "<<" | ">>" | "<<=" | ">>="
+alpha ::= [a-zA-Z]
+digit ::= [0-9]
+
+ExpressionList ::= [ Expression [ "," Expression ]* ]?
+Expression ::= Expr0 [ [ "==" | "!=" | "<=" | ">=" | "<" | ">"  ] Expr0 ]?
+Expr0 ::= constant | identifier | FunctionCall
+FunctionCall ::= identifier "(" [ Expression() [ "," Expression() ]* ]? ")"
